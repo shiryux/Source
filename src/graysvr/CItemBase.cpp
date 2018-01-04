@@ -240,6 +240,8 @@ bool CItemBase::IsTypeArmor( IT_TYPE type )  // static
 		case IT_CLOTHING:
 		case IT_ARMOR:
 		case IT_ARMOR_LEATHER:
+		case IT_ARMOR_CHAIN:
+		case IT_ARMOR_RING:
 		case IT_SHIELD:
 			return( true );
 

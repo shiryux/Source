@@ -2189,8 +2189,7 @@ int CChar::Fight_CalcDamage( const CItem * pWeapon, bool bNoRandom, bool bGetMax
 	if ( m_pNPC && m_pNPC->m_Brain == NPCBRAIN_GUARD && g_Cfg.m_fGuardsInstantKill )
 		return( 20000 );	// swing made.
 
-	int iDmgMin = 0;
-	int iDmgMax = 0;
+	int iDmgMin, iDmgMax = 0;
 	STAT_TYPE iStatBonus = static_cast<STAT_TYPE>(GetDefNum("COMBATBONUSSTAT"));
 	int iStatBonusPercent = static_cast<int>(GetDefNum("COMBATBONUSPERCENT"));
 	if ( pWeapon != NULL )
@@ -3108,47 +3107,49 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	}
 
 	// We hit
+	int iParried = 0;
 	if ( !(iTyp & DAMAGE_GOD) )
 	{
 		// Check if target will block the hit
 		// Legacy pre-SE formula
 		CItem *pItemHit = NULL;
 		int ParryChance = 0;
-		if ( pCharTarg->IsStatFlag(STATF_HasShield) )	// parry using shield
+		if (pCharTarg->IsStatFlag(STATF_HasShield))	// parry using shield
 		{
 			pItemHit = pCharTarg->LayerFind(LAYER_HAND2);
-			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 40;
-		}
-		else if ( pCharTarg->m_uidWeapon.IsItem() )		// parry using weapon
-		{
-			pItemHit = pCharTarg->m_uidWeapon.ItemFind();
-			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 80;
-		}
+			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 30;
+			if (pCharTarg->Skill_GetBase(SKILL_PARRYING) >= 1000)
+				ParryChance += 5;
 
-		if ( pCharTarg->Skill_GetBase(SKILL_PARRYING) >= 1000 )
-			ParryChance += 5;
+			int Dex = pCharTarg->Stat_GetAdjusted(STAT_DEX);
+			if (Dex < 80)
+				ParryChance = ParryChance * (20 + Dex) / 100;
 
-		int Dex = pCharTarg->Stat_GetAdjusted(STAT_DEX);
-		if ( Dex < 80 )
-			ParryChance = ParryChance * (20 + Dex) / 100;
+			if (pCharTarg->Skill_UseQuick(SKILL_PARRYING, ParryChance, true, false))
+			{
+				if (IsPriv(PRIV_DETAIL))
+					SysMessageDefault(DEFMSG_COMBAT_PARRY);
+				if (pItemHit && (Calc_GetRandVal(100) >= 50))
+					pItemHit->OnTakeDamage(1, this, iTyp);
 
-		if ( pCharTarg->Skill_UseQuick(SKILL_PARRYING, ParryChance, true, false) )
-		{
-			if ( IsPriv(PRIV_DETAIL) )
-				SysMessageDefault(DEFMSG_COMBAT_PARRY);
-			if ( pItemHit )
-				pItemHit->OnTakeDamage(1, this, iTyp);
-
-			//Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16);		// moved to scripts (@UseQuick on Parrying skill)
-			return WAR_SWING_EQUIPPING;
+				iParried = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 25;
+				pCharTarg->Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16);		// moved to scripts (@UseQuick on Parrying skill)
+			}
 		}
 	}
 
 	// Calculate base damage
 	int	iDmg = Fight_CalcDamage(pWeapon);
 	
+	// Setting LOCALs
 	CScriptTriggerArgs Args(iDmg, iTyp, pWeapon);
 	Args.m_VarsLocal.SetNum("ItemDamageChance", 40);
+
+	if (iParried)
+		Args.m_VarsLocal.SetNum("ParryingReduction", iParried);
+	else
+		Args.m_VarsLocal.SetNum("ParryingReduction", 0);
+
 	if ( pAmmo )
 		Args.m_VarsLocal.SetNum("Arrow", pAmmo->GetUID());
 
@@ -3179,6 +3180,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 
 		iDmg = static_cast<int>(Args.m_iN1);
 		iTyp = static_cast<DAMAGE_TYPE>(Args.m_iN2);
+		iDmg -= iDmg * static_cast<int>(Args.m_VarsLocal.GetKeyNum("ParryingReduction")) / 100;
 	}
 
 	// BAD BAD Healing fix.. Cant think of something else -- Radiant

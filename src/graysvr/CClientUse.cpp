@@ -334,15 +334,7 @@ bool CClient::Cmd_Use_Item( CItem *pItem, bool fTestTouch, bool fScript )
 		}
 
 		case IT_CARPENTRY:
-		{
-			if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-			{
-				CScriptTriggerArgs args("sm_carpentry");
-				if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-					return true;
-			}
-			return Cmd_Skill_Menu(g_Cfg.ResourceGetIDType(RES_SKILLMENU, "sm_carpentry"));
-		}
+			return CraftingSelect(SKILL_CARPENTRY);
 
 		case IT_FORGE:
 			// Solve for the combination of this item with another.
@@ -353,7 +345,7 @@ bool CClient::Cmd_Use_Item( CItem *pItem, bool fTestTouch, bool fScript )
 			return m_pChar->Skill_Mining_Smelt(pItem, NULL);
 
 		case IT_INGOT:
-			return Cmd_Skill_Smith(pItem);
+			return CraftingBlacksmithing(pItem);
 
 		case IT_KEY:
 		case IT_KEYRING:
@@ -482,15 +474,7 @@ bool CClient::Cmd_Use_Item( CItem *pItem, bool fTestTouch, bool fScript )
 			return true;
 
 		case IT_MORTAR:
-		{
-			if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-			{
-				CScriptTriggerArgs args("sm_alchemy");
-				if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-					return true;
-			}
-			return Cmd_Skill_Menu(g_Cfg.ResourceGetIDType(RES_SKILLMENU, "sm_alchemy"));
-		}
+			return CraftingSelect(SKILL_ALCHEMY);
 
 		case IT_CARTOGRAPHY:
 		{

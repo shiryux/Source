@@ -997,6 +997,8 @@ int CClient::OnSkill_ArmsLore( CGrayUID uid, int iSkillLevel, bool fTest )
 		case IT_ARMOR:				// some type of armor. (no real action)
 		case IT_SHIELD:
 		case IT_ARMOR_LEATHER:
+		case IT_ARMOR_CHAIN:
+		case IT_ARMOR_RING:
 		case IT_CLOTHING:
 		case IT_JEWELRY:
 			fWeapon = false;
@@ -1970,28 +1972,14 @@ bool CClient::OnTarg_Use_Item( CObjBase * pObjTarg, CPointMap & pt, ITEMID_TYPE 
 				SysMessageDefault( DEFMSG_ITEMUSE_LOG_UNABLE );
 				return( false );
 			}
-			if ( pItemUse->IsType(IT_CARPENTRY_CHOP) )
-			{
-				if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-				{
-					CScriptTriggerArgs args("sm_carpentry");
-					if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-						return true;
-				}
-				return Cmd_Skill_Menu( g_Cfg.ResourceGetIDType( RES_SKILLMENU, "sm_carpentry" ));
-			}
-			if ( pItemUse->IsSameDispID( ITEMID_DAGGER ))
-			{
-				// set the target item
-				m_Targ_UID = pItemTarg->GetUID();
-				if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-				{
-					CScriptTriggerArgs args("sm_bowcraft");
-					if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-						return true;
-				}
-				return Cmd_Skill_Menu( g_Cfg.ResourceGetIDType( RES_SKILLMENU, "sm_bowcraft" ) );
-			}
+			// We're using a carpentry tool.
+			if (pItemUse->IsType(IT_CARPENTRY_CHOP))
+				return CraftingSelect(SKILL_CARPENTRY);
+
+			// We're using a dagger.
+			if (pItemUse->IsSameDispID(ITEMID_DAGGER))
+				return CraftingSelect(SKILL_BOWCRAFT);
+
 			SysMessageDefault( DEFMSG_ITEMUSE_LOG_USE );
 			return false;
 

@@ -3172,11 +3172,13 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		return false;
 
 	iSkillLevel = iSkillLevel / 2 + Calc_GetRandVal(iSkillLevel / 2);	// randomize the potency
+	int iDamageBonus, iMultiplier = 0;
 	int iEffect = g_Cfg.GetSpellEffect(spell, iSkillLevel);
 	int iDuration = pSpellDef->m_idLayer ? GetSpellDuration(spell, iSkillLevel, pCharSrc) : 0;
-	SOUND_TYPE iSound = pSpellDef->m_sound;
 	bool fExplode = (pSpellDef->IsSpellType(SPELLFLAG_FX_BOLT) && !pSpellDef->IsSpellType(SPELLFLAG_GOOD));		// bolt (chasing) spells have explode = 1 by default (if not good spell)
 	bool fPotion = (pSourceItem && pSourceItem->IsType(IT_POTION));
+	SOUND_TYPE iSound = pSpellDef->m_sound;
+
 	if ( fPotion )
 	{
 		static const SOUND_TYPE sm_DrinkSounds[] = { 0x030, 0x031 };
@@ -3187,11 +3189,11 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	int iResist = 0;
 	if ( pSpellDef->IsSpellType(SPELLFLAG_RESIST) && pCharSrc && !fPotion )
 	{
+		// If ResistSpells is successful, then we resist 25%
+		// If not, we only resist 0%-15%, depends on random.
 		iResist = Skill_GetBase(SKILL_MAGICRESISTANCE);
-		int iFirst = iResist / 50;
-		int iSecond = iResist - (((pCharSrc->Skill_GetBase(SKILL_MAGERY) - 200) / 50) + (1 + (spell / 8)) * 50);
-		int iResistChance = maximum(iFirst, iSecond) / 30;
-		iResist = Skill_UseQuick(SKILL_MAGICRESISTANCE, iResistChance, true, false) ? 25 : 0;	// If we successfully resist then we have a 25% damage reduction, 0 if we don't.
+		int iResistChance = iResist - (pCharSrc->Skill_GetBase(SKILL_EVALINT) * (spell / 8) / 20);
+		iResist = Skill_UseQuick(SKILL_MAGICRESISTANCE, iResistChance, true, false) ? 25 : Calc_GetRandVal(iResist / 70);
 
 		if ( g_Cfg.m_iFeatureAOS & FEATURE_AOS_UPDATE_B )
 		{
@@ -3209,25 +3211,16 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 				iEffect *= ((iSkillLevel * 3) / 1000) + 1;
 			else
 			{
-				// Evaluating Intelligence mult
-				iEffect *= ((pCharSrc->Skill_GetBase(SKILL_EVALINT) * 3) / 1000) + 1;
+				iMultiplier = ((pCharSrc->Skill_GetBase(SKILL_EVALINT) * 3) / 1000) + 1;
+				iDamageBonus = pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
+				if (pCharSrc->Skill_GetBase(SKILL_INSCRIPTION) > 99.9)
+					iDamageBonus += 10;
 
 				// Spell Damage Increase bonus
-				int DamageBonus = static_cast<int>(pCharSrc->GetDefNum("IncreaseSpellDam"));
+				/* int DamageBonus = static_cast<int>(pCharSrc->GetDefNum("IncreaseSpellDam"));
 				if ( (DamageBonus > 15) && m_pPlayer && pCharSrc->m_pPlayer )		// Spell Damage Increase is capped at 15% on PvP
-					DamageBonus = 15;
+					DamageBonus = 15;*/
 
-				// INT bonus
-				DamageBonus += pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
-
-				// Inscription bonus
-				DamageBonus += pCharSrc->Skill_GetBase(SKILL_INSCRIPTION) / 100;
-
-				// Racial Bonus (Berserk), gargoyles gains +3% Spell Damage Increase per each 20 HP lost
-				if ( (g_Cfg.m_iRacialFlags & RACIALF_GARG_BERSERK) && IsGargoyle() )
-					DamageBonus += minimum(3 * ((Stat_GetMax(STAT_STR) - Stat_GetVal(STAT_STR)) / 20), 12);		// value is capped at 12%
-
-				iEffect += iEffect * DamageBonus / 100;
 			}
 		}
 	}
@@ -3238,6 +3231,8 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	Args.m_VarsLocal.SetNum("Explode", fExplode);
 	Args.m_VarsLocal.SetNum("Sound", iSound);
 	Args.m_VarsLocal.SetNum("Effect", iEffect);
+	Args.m_VarsLocal.SetNum("Multiplier", iMultiplier);
+	Args.m_VarsLocal.SetNum("DamageBonus", iDamageBonus);
 	Args.m_VarsLocal.SetNum("Resist", iResist);
 	Args.m_VarsLocal.SetNum("Duration", iDuration);
 
@@ -3267,12 +3262,20 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	ITEMID_TYPE iEffectID = static_cast<ITEMID_TYPE>(RES_GET_INDEX(Args.m_VarsLocal.GetKeyNum("CreateObject1")));
 	fExplode = (Args.m_VarsLocal.GetKeyNum("EffectExplode") > 0) ? true : false;
 	iSound = static_cast<SOUND_TYPE>(Args.m_VarsLocal.GetKeyNum("Sound"));
-	iEffect = static_cast<int>(Args.m_VarsLocal.GetKeyNum("Effect"));
-	iResist = static_cast<int>(Args.m_VarsLocal.GetKeyNum("Resist"));
-	iDuration = static_cast<int>(Args.m_VarsLocal.GetKeyNum("Duration"));
+	iEffect			= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Effect"));
+	iMultiplier		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Multiplier"));
+	iDamageBonus	= static_cast<int>(Args.m_VarsLocal.GetKeyNum("DamageBonus"));
+	iResist			= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Resist"));
+	iDuration		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Duration"));
 
 	HUE_TYPE iColor = static_cast<HUE_TYPE>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectColor")));
 	DWORD iRender = static_cast<DWORD>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectRender")));
+
+	if (iMultiplier != 0)
+		iEffect *= iMultiplier;
+
+	if (iDamageBonus != 0)
+		iEffect += iEffect * iDamageBonus / 100;
 
 	if ( iEffectID > ITEMID_QTY )
 		iEffectID = pSpellDef->m_idEffect;
@@ -3303,14 +3306,14 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		{
 			if ( IsStatFlag(STATF_Reflection) )
 			{
-				Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 5);
+				Effect(EFFECT_OBJ, ITEMID_FX_SPARKLE, this, 6, 15);
 				CItem *pMagicReflect = LayerFind(LAYER_SPELL_Magic_Reflect);
 				if ( pMagicReflect )
 					pMagicReflect->Delete();
 
 				if ( pCharSrc->IsStatFlag(STATF_Reflection) )		// caster is under reflection effect too, so the spell will reflect back to default target
 				{
-					pCharSrc->Effect(EFFECT_OBJ, ITEMID_FX_GLOW, pCharSrc, 10, 5);
+					pCharSrc->Effect(EFFECT_OBJ, ITEMID_FX_SPARKLE, pCharSrc, 6, 15);
 					pMagicReflect = pCharSrc->LayerFind(LAYER_SPELL_Magic_Reflect);
 					if ( pMagicReflect )
 						pMagicReflect->Delete();

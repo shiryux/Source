@@ -1194,6 +1194,11 @@ private:
 	bool OnTarg_Pet_Command( CObjBase * pObj, const CPointMap & pt );
 	bool OnTarg_Pet_Stable( CChar * pCharPet );
 
+	// Crafting Skills
+	bool CraftingSelect(SKILL_TYPE skill);
+	bool CraftingInscription();
+	bool CraftingBlacksmithing(CItem * pIngots);
+
 	// Commands from client
 	void Event_Skill_Use(SKILL_TYPE x);	// Skill is clicked on the skill list
 	void Event_Talk_Common(TCHAR *szText);	// PC speech

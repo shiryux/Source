@@ -2750,6 +2750,8 @@ void CClient::addAOSTooltip( const CObjBase *pObj, bool bRequested, bool bShop )
 
 						case IT_ARMOR_LEATHER:
 						case IT_ARMOR:
+						case IT_ARMOR_CHAIN:
+						case IT_ARMOR_RING:
 						case IT_CLOTHING:
 						case IT_SHIELD:
 						{

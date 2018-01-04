@@ -2580,7 +2580,7 @@ enum CTRIG_TYPE
 	CTRIG_SkillFail,			// SKTRIG_FAIL
 	CTRIG_SkillGain,			// SKTRIG_GAIN
 	CTRIG_SkillMakeItem,
-	CTRIG_SkillMemu,
+	CTRIG_SkillMenu,
 	CTRIG_SkillPreStart,		// SKTRIG_PRESTART
 	CTRIG_SkillSelect,			// SKTRIG_SELECT
 	CTRIG_SkillStart,			// SKTRIG_START
