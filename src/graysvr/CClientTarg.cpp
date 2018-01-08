@@ -1902,7 +1902,7 @@ bool CClient::OnTarg_Use_Item( CObjBase * pObjTarg, CPointMap & pt, ITEMID_TYPE 
 			break;
 		if ( pItemTarg->IsType(IT_INGOT) )
 		{
-			return Cmd_Skill_Smith( pItemTarg );
+			return CraftingBlacksmithing( pItemTarg );
 		}
 		else if ( pItemTarg->Armor_IsRepairable())
 		{

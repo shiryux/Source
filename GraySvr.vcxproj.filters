@@ -34,6 +34,9 @@
     <Filter Include="tables">
       <UniqueIdentifier>{b459b1a6-1618-4776-a2ef-a312167c3bbb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Crafting">
+      <UniqueIdentifier>{6402e0c2-2b8c-4903-b098-dab51a7b46fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\zlib\adler32.c">
@@ -365,6 +368,15 @@
     </ClCompile>
     <ClCompile Include="src\common\CEncrypt.cpp">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graysvr\Crafting\BaseCraft.cpp">
+      <Filter>Crafting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graysvr\Crafting\Blacksmithing.cpp">
+      <Filter>Crafting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graysvr\Crafting\Inscription.cpp">
+      <Filter>Crafting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
