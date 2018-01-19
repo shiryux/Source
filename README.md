@@ -8,7 +8,7 @@ Support will not be provided. Code will be customized.
 * Removing/Changing/Adding anything that was working in one way for years should be followed by an ini setting if the changes cannot be replicated from script to keep some backwards compatibility.
 
 ## Licensing
-Copyright 2017 SphereServer development team
+Copyright 2018 SphereServer development team
 
 Licensed under the Apache License, Version 2.0 (the "License").<br>
 You may not use any file of this project except in compliance with the License.<br>
