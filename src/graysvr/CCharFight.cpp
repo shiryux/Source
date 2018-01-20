@@ -1638,7 +1638,7 @@ WORD CChar::CalcArmorDefense() const
 			iDefenseTotal += sm_ArmorLayers[i].m_wCoverage * ArmorRegionMax[i];
 	}
 	
-	return (iDefenseTotal / 100) + m_ModAr;
+	return (iDefenseTotal / 100) + static_cast<WORD>(m_ModAr);
 }
 
 // Someone hit us.
@@ -2999,10 +2999,10 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		if ( pCharTarg->IsPriv(PRIV_DETAIL) )
 			pCharTarg->SysMessagef(g_Cfg.GetDefaultMsg(DEFMSG_COMBAT_MISSO), GetName());
 
-		SOUND_TYPE iSound;
+		SOUND_TYPE iSound = SOUND_NONE;
 		if ( pWeapon )
 			iSound = pWeapon->Weapon_GetSoundMiss();
-		if ( !iSound )
+		if ( iSound == SOUND_NONE )
 		{
 			static const SOUND_TYPE sm_SoundMiss_Wrestling[] = { 0x238, 0x239, 0x23a };
 			iSound = sm_SoundMiss_Wrestling[Calc_GetRandVal(COUNTOF(sm_SoundMiss_Wrestling))];
