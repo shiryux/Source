@@ -1416,23 +1416,19 @@ void CChar::OnHarmedBy( CChar * pCharSrc )
 //
 // RETURN: true = ok.
 //  false = we are immune to this char ! (or they to us)
-bool CChar::OnAttackedBy( CChar * pCharSrc, int iHarmQty, bool fCommandPet, bool fShouldReveal)
+bool CChar::OnAttackedBy(CChar *pCharSrc, bool bCommandPet, bool bShouldReveal)
 {
 	ADDTOCALLSTACK("CChar::OnAttackedBy");
-	UNREFERENCED_PARAMETER(iHarmQty);
 
-	if ( pCharSrc == NULL )
-		return true;	// field spell ?
-	if ( pCharSrc == this )
-		return true;	// self induced
-	if ( IsStatFlag( STATF_DEAD ) )
+	if ( !pCharSrc || (pCharSrc == this) )
+		return true;
+	if ( IsStatFlag(STATF_DEAD) )
 		return false;
 
-	if (fShouldReveal)
-		pCharSrc->Reveal();	// fix invis exploit
+	if ( bShouldReveal )
+		pCharSrc->Reveal();
 
-	// Am i already attacking the source anyhow
-	if (Fight_IsActive() && m_Fight_Targ == pCharSrc->GetUID())
+	if ( Fight_IsActive() && (m_Fight_Targ == pCharSrc->GetUID()) )
 		return true;
 
 	Memory_AddObjTypes( pCharSrc, MEMORY_HARMEDBY|MEMORY_IRRITATEDBY );
@@ -1451,13 +1447,10 @@ bool CChar::OnAttackedBy( CChar * pCharSrc, int iHarmQty, bool fCommandPet, bool
 		}
 	}
 
-	if ( ! fCommandPet )
-	{
-		// possibly retaliate. (auto defend)
-		OnHarmedBy( pCharSrc );
-	}
+	if ( !bCommandPet )
+		OnHarmedBy(pCharSrc);	// possibly retaliate. (auto defend)
 
-	return( true );
+	return true;
 }
 
 // Armor layers that can be damaged on combat
@@ -1688,7 +1681,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 
 	// Make some notoriety checks
 	// Don't reveal attacker if the damage has DAMAGE_NOREVEAL flag set (this is set by default for poison and spell damage)
-	if ( !OnAttackedBy(pSrc, iDmg, false, !(uType & DAMAGE_NOREVEAL)) )
+	if ( !OnAttackedBy(pSrc, false, !(uType & DAMAGE_NOREVEAL)) )
 		return( 0 );
 
 	// Apply Necromancy cursed effects
@@ -2298,6 +2291,8 @@ bool CChar::Fight_Attack( const CChar *pCharTarg, bool btoldByMaster )
 	SKILL_TYPE skillActive = Skill_GetActive();
 
 	if ( (skillActive == skillWeapon) && (m_Fight_Targ == pCharTarg->GetUID()) )		// already attacking this same target using the same skill
+		return true;
+	else if ( g_Cfg.IsSkillFlag(skillActive, SKF_MAGIC) )	// don't start another fight skill when already casting spells
 		return true;
 
 	if ( m_pNPC && !btoldByMaster )		// call FindBestTarget when this CChar is a NPC and was not commanded to attack, otherwise it attack directly
