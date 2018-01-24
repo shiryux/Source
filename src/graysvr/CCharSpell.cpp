@@ -1979,8 +1979,16 @@ CItem *CChar::Spell_Effect_Create(SPELL_TYPE spell, LAYER_TYPE layer, int iSkill
 		}
 
 		// Check if stats spells can stack
-		if ( (layer == LAYER_SPELL_STATS) && (spell != pSpellPrev->m_itSpell.m_spell) && IsSetMagicFlags(MAGICF_STACKSTATS) )
-			continue;
+		if ((layer == LAYER_SPELL_STATS) && (spell != pSpellPrev->m_itSpell.m_spell) && IsSetMagicFlags(MAGICF_STACKSTATS))
+		{
+			if (g_Cfg.GetSpellDef(SPELL_TYPE(pSpellPrev->m_itSpell.m_spell))->IsSpellType(SPELLFLAG_CURSE))
+				if ( !g_Cfg.GetSpellDef(spell)->IsSpellType(SPELLFLAG_CURSE))
+					continue;
+
+			if (g_Cfg.GetSpellDef(SPELL_TYPE(pSpellPrev->m_itSpell.m_spell))->IsSpellType(SPELLFLAG_BLESS))
+				if (!g_Cfg.GetSpellDef(spell)->IsSpellType(SPELLFLAG_BLESS))
+					continue;
+		}
 
 		pSpellPrev->Delete();
 		break;
