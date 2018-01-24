@@ -3205,23 +3205,20 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 
 	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE) )
 	{
-		if ( IsSetMagicFlags(MAGICF_OSIFORMULAS) )
+		if ( !pCharSrc )
+			iEffect *= ((iSkillLevel * 3) / 1000) + 1;
+		else
 		{
-			if ( !pCharSrc )
-				iEffect *= ((iSkillLevel * 3) / 1000) + 1;
-			else
-			{
-				iMultiplier = ((pCharSrc->Skill_GetBase(SKILL_EVALINT) * 3) / 1000) + 1;
-				iDamageBonus = pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
-				if (pCharSrc->Skill_GetBase(SKILL_INSCRIPTION) > 99.9)
-					iDamageBonus += 10;
+			iMultiplier = ((pCharSrc->Skill_GetBase(SKILL_EVALINT) * 3) / 1000) + 1;
+			iDamageBonus = pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
+			if (pCharSrc->Skill_GetBase(SKILL_INSCRIPTION) > 99.9)
+				iDamageBonus += 10;
 
-				// Spell Damage Increase bonus
-				/* int DamageBonus = static_cast<int>(pCharSrc->GetDefNum("IncreaseSpellDam"));
-				if ( (DamageBonus > 15) && m_pPlayer && pCharSrc->m_pPlayer )		// Spell Damage Increase is capped at 15% on PvP
-					DamageBonus = 15;*/
+			// Spell Damage Increase bonus
+			/* int DamageBonus = static_cast<int>(pCharSrc->GetDefNum("IncreaseSpellDam"));
+			if ( (DamageBonus > 15) && m_pPlayer && pCharSrc->m_pPlayer )		// Spell Damage Increase is capped at 15% on PvP
+				DamageBonus = 15;*/
 
-			}
 		}
 	}
 
