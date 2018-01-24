@@ -3203,7 +3203,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
-	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType>(SPELLFLAG_BLESS) || pSpellDef->IsSpellType>(SPELLFLAG_CURSE))
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE))
 	{
 		if ( !pCharSrc )
 			iEffect *= ((iSkillLevel * 3) / 1000) + 1;
