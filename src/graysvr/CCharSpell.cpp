@@ -3203,14 +3203,14 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
-	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE) )
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType>(SPELLFLAG_BLESS) || pSpellDef->IsSpellType>(SPELLFLAG_CURSE))
 	{
 		if ( !pCharSrc )
 			iEffect *= ((iSkillLevel * 3) / 1000) + 1;
 		else
 		{
-			iMultiplier = ((pCharSrc->Skill_GetBase(SKILL_EVALINT) * 3) / 1000) + 1;
-			iDamageBonus = pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
+			iDamageBonus = (pCharSrc->Skill_GetBase(SKILL_EVALINT) * 35) / 1000;
+			iDamageBonus += pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
 			if (pCharSrc->Skill_GetBase(SKILL_INSCRIPTION) > 99.9)
 				iDamageBonus += 10;
 
@@ -3228,7 +3228,6 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	Args.m_VarsLocal.SetNum("Explode", fExplode);
 	Args.m_VarsLocal.SetNum("Sound", iSound);
 	Args.m_VarsLocal.SetNum("Effect", iEffect);
-	Args.m_VarsLocal.SetNum("Multiplier", iMultiplier);
 	Args.m_VarsLocal.SetNum("DamageBonus", iDamageBonus);
 	Args.m_VarsLocal.SetNum("Resist", iResist);
 	Args.m_VarsLocal.SetNum("Duration", iDuration);
@@ -3260,16 +3259,12 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	fExplode = (Args.m_VarsLocal.GetKeyNum("EffectExplode") > 0) ? true : false;
 	iSound = static_cast<SOUND_TYPE>(Args.m_VarsLocal.GetKeyNum("Sound"));
 	iEffect			= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Effect"));
-	iMultiplier		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Multiplier"));
-	iDamageBonus	= static_cast<int>(Args.m_VarsLocal.GetKeyNum("DamageBonus"));
+	iDamageBonus		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("DamageBonus"));
 	iResist			= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Resist"));
 	iDuration		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Duration"));
 
 	HUE_TYPE iColor = static_cast<HUE_TYPE>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectColor")));
 	DWORD iRender = static_cast<DWORD>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectRender")));
-
-	if (iMultiplier != 0)
-		iEffect *= iMultiplier;
 
 	if (iDamageBonus != 0)
 		iEffect += iEffect * iDamageBonus / 100;
@@ -3337,7 +3332,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	if ( iSound )
 		Sound(iSound);
 
-	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE) )
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType(SPELLFLAG_CURSE) )
 	{
 		if ( iResist > 0 )
 		{
