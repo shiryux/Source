@@ -3211,7 +3211,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
-	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE))
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE) || pSpellDef->IsSpellType(SPELLFLAG_HEAL) )
 	{
 		if ( !pCharSrc )
 			iEffect *= ((iSkillLevel * 3) / 1000) + 1;
@@ -3349,6 +3349,10 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 			if ( iEffect < 0 )
 				iEffect = 0;	//May not do damage, but aversion should be created from the target.
 		}
+	}
+	
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE) )
+	{
 		if ( !iDmgType )
 		{
 			switch ( spell )
