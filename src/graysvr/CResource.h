@@ -437,6 +437,7 @@ private:
 #define SPELLFLAG_BLESS				0x10000000	//Benefitial spells like Bless,Agility,etc.
 #define SPELLFLAG_CURSE				0x20000000	//Curses just like Weaken,Purge Magic,Curse,etc.
 #define SPELLFLAG_HEAL				0x40000000	// Healing spell
+#define SPELLFLAG_FREEZEONCAST			0x80000000	// freeze when casting
 
 	CGString m_sName;	// spell name
 
