@@ -3211,7 +3211,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
-	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE) || pSpellDef->IsSpellType(SPELLFLAG_HEAL) )
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  
 	{
 		if ( !pCharSrc )
 			iEffect *= ((iSkillLevel * 3) / 1000) + 1;
@@ -3221,14 +3221,11 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 			iDamageBonus += pCharSrc->Stat_GetAdjusted(STAT_INT) / 10;
 			if (pCharSrc->Skill_GetBase(SKILL_INSCRIPTION) > 99.9)
 				iDamageBonus += 10;
-
-			// Spell Damage Increase bonus
-			/* int DamageBonus = static_cast<int>(pCharSrc->GetDefNum("IncreaseSpellDam"));
-			if ( (DamageBonus > 15) && m_pPlayer && pCharSrc->m_pPlayer )		// Spell Damage Increase is capped at 15% on PvP
-				DamageBonus = 15;*/
-
 		}
 	}
+
+	if (pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE) || pSpellDef->IsSpellType(SPELLFLAG_HEAL))
+		iEffect = iSkillLevel /= 2;
 
 	CScriptTriggerArgs Args(static_cast<int>(spell), iSkillLevel, pSourceItem);
 	Args.m_VarsLocal.SetNum("DamageType", 0);
@@ -3246,7 +3243,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		{
 			case TRIGRET_RET_TRUE:	return false;
 			case TRIGRET_RET_FALSE:	if ( pSpellDef->IsSpellType(SPELLFLAG_SCRIPTED) ) return true;
-			default:				break;
+			default:		break;
 		}
 	}
 
@@ -3256,7 +3253,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		{
 			case TRIGRET_RET_TRUE:	return false;
 			case TRIGRET_RET_FALSE:	if ( pSpellDef->IsSpellType(SPELLFLAG_SCRIPTED) ) return true;
-			default:				break;
+			default:		break;
 		}
 	}
 
@@ -3275,7 +3272,12 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	DWORD iRender = static_cast<DWORD>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectRender")));
 
 	if (iDamageBonus != 0)
-		iEffect += iEffect * iDamageBonus / 100;
+	{
+		if (pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE) || pSpellDef->IsSpellType(SPELLFLAG_HEAL))
+			iEffect += iDamageBonus * 10;
+		else
+			iEffect += iEffect * iDamageBonus / 100;
+	}
 
 	if ( iEffectID > ITEMID_QTY )
 		iEffectID = pSpellDef->m_idEffect;
@@ -3409,7 +3411,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		case SPELL_Bless:
 		case SPELL_Mana_Drain:
 		case SPELL_Mass_Curse:
-			Spell_Effect_Create(spell, fPotion ? LAYER_FLAG_Potion : LAYER_SPELL_STATS, iSkillLevel, iDuration, pCharSrc);
+			Spell_Effect_Create(spell, fPotion ? LAYER_FLAG_Potion : LAYER_SPELL_STATS, iEffect, iDuration, pCharSrc);
 			break;
 
 		case SPELL_Heal:
