@@ -102,10 +102,13 @@ bool CClient::Cmd_Use_Item( CItem *pItem, bool fTestTouch, bool fScript )
 			if ( !m_pChar->CanMove(pItem) )
 				return false;
 
-			if ( !m_pChar->CanCarry(pItem) )
+			if (pItem->GetParent() != m_pChar->GetContainer(LAYER_PACK))
 			{
-				SysMessageDefault(DEFMSG_MSG_HEAVY);
-				return false;
+				if (!m_pChar->CanCarry(pItem))
+				{
+					SysMessageDefault(DEFMSG_MSG_HEAVY);
+					return false;
+				}
 			}
 
 			if ( !m_pChar->ItemEquip(pItem, NULL, true) )

@@ -3309,6 +3309,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		{
 			Skill_Experience(skill, m_Act_Difficulty);
 			Skill_Experience(SKILL_TACTICS, m_Act_Difficulty);
+			Skill_Experience(SKILL_ANATOMY, m_Act_Difficulty);
 		}
 	}
 
