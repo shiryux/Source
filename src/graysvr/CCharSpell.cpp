@@ -3211,7 +3211,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
-	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  
+	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE) )
 	{
 		if ( !pCharSrc )
 			iEffect *= ((iSkillLevel * 3) / 1000) + 1;
