@@ -531,7 +531,7 @@ void CClient::Event_Skill_Use(SKILL_TYPE skill)
 			break;
 
 		case SKILL_INSCRIPTION:
-			Cmd_Skill_Inscription();
+			CraftingInscription();
 			break;
 
 		default:

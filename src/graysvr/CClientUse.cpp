@@ -521,7 +521,7 @@ bool CClient::Cmd_Use_Item( CItem *pItem, bool fTestTouch, bool fScript )
 		}
 
 		case IT_SCROLL_BLANK:
-			Cmd_Skill_Inscription();
+			CraftingInscription();
 			return true;
 
 		default:
@@ -1110,77 +1110,6 @@ bool CClient::Cmd_Skill_Tracking( WORD track_sel, bool bExec )
 		}
 	}
 	return false;
-}
-
-bool CClient::Cmd_Skill_Smith( CItem *pIngots )
-{
-	ADDTOCALLSTACK("CClient::Cmd_Skill_Smith");
-	ASSERT(m_pChar);
-	if ( !pIngots || !pIngots->IsType(IT_INGOT) )
-	{
-		SysMessageDefault(DEFMSG_SMITHING_FAIL);
-		return false;
-	}
-
-	ASSERT(m_Targ_UID == pIngots->GetUID());
-	if ( pIngots->GetTopLevelObj() != m_pChar )
-	{
-		SysMessageDefault(DEFMSG_SMITHING_REACH);
-		return false;
-	}
-
-	// Must have smith hammer equipped
-	CItem *pSmithHammer = m_pChar->LayerFind(LAYER_HAND1);
-	if ( !pSmithHammer || !pSmithHammer->IsType(IT_WEAPON_MACE_SMITH) )
-	{
-		SysMessageDefault(DEFMSG_SMITHING_HAMMER);
-		return false;
-	}
-
-	// Select the blacksmith item type.
-	// repair items or make type of items.
-	if ( !g_World.IsItemTypeNear(m_pChar->GetTopPoint(), IT_FORGE, 3, false, true) )
-	{
-		SysMessageDefault(DEFMSG_SMITHING_FORGE);
-		return false;
-	}
-
-	// Select the blacksmith item type.
-	// repair items or make type of items.
-	if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-	{
-		CScriptTriggerArgs args("sm_blacksmith");
-		if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-			return true;
-	}
-	return Cmd_Skill_Menu(g_Cfg.ResourceGetIDType(RES_SKILLMENU, "sm_blacksmith"));
-}
-
-bool CClient::Cmd_Skill_Inscription()
-{
-	ADDTOCALLSTACK("CClient::Cmd_Skill_Inscription");
-	// Select the scroll type to make.
-	// iSelect = -1 = 1st setup.
-	// iSelect = 0 = cancel
-	// iSelect = x = execute the selection.
-	// we should already be in inscription skill mode.
-
-	ASSERT(m_pChar);
-
-	CItem *pBlankScroll = m_pChar->ContentFind(RESOURCE_ID(RES_TYPEDEF, IT_SCROLL_BLANK));
-	if ( !pBlankScroll )
-	{
-		SysMessageDefault(DEFMSG_INSCRIPTION_FAIL);
-		return false;
-	}
-
-	if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-	{
-		CScriptTriggerArgs args("sm_inscription");
-		if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-			return true;
-	}
-	return Cmd_Skill_Menu(g_Cfg.ResourceGetIDType(RES_SKILLMENU, "sm_inscription"));
 }
 
 bool CClient::Cmd_SecureTrade( CChar *pChar, CItem *pItem )
