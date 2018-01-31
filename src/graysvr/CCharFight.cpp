@@ -1810,6 +1810,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 
 	if ( IsStatFlag(STATF_DEAD) )	// already dead
 		return( -1 );
+
 	if ( !(uType & DAMAGE_GOD) )
 	{
 		if ( IsStatFlag(STATF_INVUL|STATF_Stone) )
@@ -1880,11 +1881,8 @@ effect_bounce:
 		{
 			// pre-AOS armor rating (AR)
 			int iArmorRating = pCharDef->m_defense + m_defense;
+			int iDef = Calc_GetRandVal2((iArmorRating) / 2, iArmorRating);
 
-			int iArMax = iArmorRating * Calc_GetRandVal2(7,35) / 100;
-			int iArMin = iArMax / 2;
-
-			int iDef = Calc_GetRandVal2( iArMin, (iArMax - iArMin) + 1 );
 			if ( uType & DAMAGE_MAGIC )		// magical damage halves effectiveness of defense
 				iDef /= 2;
 
@@ -1896,7 +1894,7 @@ effect_bounce:
 	if ( !(uType & DAMAGE_POISON) )
 	{
 		Args.m_VarsLocal.SetNum("ItemDamageLayer", sm_ArmorDamageLayers[Calc_GetRandVal(COUNTOF(sm_ArmorDamageLayers))]);
-		Args.m_VarsLocal.SetNum("ItemDamageChance", 40);
+		Args.m_VarsLocal.SetNum("ItemDamageChance", 2);
 	}
 
 	if ( IsTrigUsed(TRIGGER_GETHIT) )
@@ -1995,7 +1993,10 @@ effect_bounce:
 			{
 				if ( GetTopDist3D(pSrc) < 2 )
 				{
-					int iReactiveDamage = iDmg / 5;
+
+					CItem * pReactive = LayerFind(LAYER_SPELL_Reactive);
+					int iReactiveDamage = iDmg / (15 - pReactive->m_itSpell.m_spelllevel);
+					
 					if ( iReactiveDamage < 1 )
 						iReactiveDamage = 1;
 

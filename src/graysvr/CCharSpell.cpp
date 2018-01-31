@@ -3424,7 +3424,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 			break;
 
 		case SPELL_Reactive_Armor:
-			Spell_Effect_Create(spell, LAYER_SPELL_Reactive, iSkillLevel, iDuration, pCharSrc);
+			Spell_Effect_Create(spell, LAYER_SPELL_Reactive, iEffect, iDuration, pCharSrc);
 			break;
 
 		case SPELL_Magic_Reflect:
