@@ -2118,8 +2118,7 @@ void CChar::NPC_Act_Fight()
 		return;
 
 	// Review our targets periodically.
-	if ( ! IsStatFlag(STATF_Pet) ||
-		m_pNPC->m_Brain == NPCBRAIN_BERSERK )
+	if ( ! IsStatFlag(STATF_Pet) ||	m_pNPC->m_Brain == NPCBRAIN_BERSERK )
 	{
 		int iObservant = ( 130 - Stat_GetAdjusted(STAT_INT)) / 20;
 		if ( ! Calc_GetRandVal( 2 + maximum( 0, iObservant )))
@@ -2141,7 +2140,6 @@ void CChar::NPC_Act_Fight()
 		// Teleport me closer.
 		NPC_LookAtChar(pChar);
 	}
-
 
 	// If i'm horribly damaged and smart enough to know it.
 	int iMotivation = NPC_GetAttackMotivation( pChar );
@@ -2186,26 +2184,18 @@ void CChar::NPC_Act_Fight()
 		}
 	}
 
-
-
 	// Can only do that with full stamina !
 	if ( !fSkipHardcoded && Stat_GetVal(STAT_DEX) >= Stat_GetAdjusted(STAT_DEX))
 	{
-		// If I am a dragon maybe I will breath fire.
-		// NPCACT_BREATH
-		if ( m_pNPC->m_Brain == NPCBRAIN_DRAGON &&
-			iDist >= 1 &&
-			iDist <= 8 &&
-			CanSeeLOS( pChar,LOS_NB_WINDOWS )) //Dragon can breath through a window
+		// If I am a dragon maybe I will breath fire. NPCACT_BREATH
+		if ( m_pNPC->m_Brain == NPCBRAIN_DRAGON && iDist >= 1 && iDist <= 8 && CanSeeLOS( pChar,LOS_NB_WINDOWS )) //Dragon can breath through a window
 		{
 			if (!IsSetCombatFlags(COMBAT_NODIRCHANGE))
 				UpdateDir( pChar );
+
 			Skill_Start( NPCACT_BREATH );
 			return;
 		}
-
-
-		// any special ammunition defined?
 
 		//check Range
 		int iRangeMin = 2;
