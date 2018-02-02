@@ -3432,15 +3432,15 @@ bool PacketBandageMacro::onReceive(NetState* net)
 		return true;
 
 	// clear previous target
-	client->SetTargMode();
+	// client->SetTargMode();
 
 	// Should we simulate the dclick?
-	// client->m_Targ_UID = bandage->GetUID();
-	// CScriptTriggerArgs extArgs(1); // Signal we're from the macro
-	// if (bandage->OnTrigger( ITRIG_DCLICK, m_pChar, &extArgs ) == TRIGRET_RET_TRUE)
-	// 		return true;
-	//
-	// client->SetTargMode();
+	client->m_Targ_UID = bandage->GetUID();
+	CScriptTriggerArgs extArgs(1); // Signal we're from the macro
+	if (bandage->OnTrigger( ITRIG_DCLICK, client->GetChar(), &extArgs ) == TRIGRET_RET_TRUE)
+	 		return true;
+	
+	client->SetTargMode();
 
 	// prepare targeting information
 	client->m_Targ_UID = bandage->GetUID();

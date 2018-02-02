@@ -2051,9 +2051,9 @@ bool CClient::OnTarg_Use_Item( CObjBase * pObjTarg, CPointMap & pt, ITEMID_TYPE 
 		// Use bandages on some creature.
 		if ( pCharTarg == NULL )
 			return( false );
-		m_pChar->m_Act_TargPrv = m_Targ_PrvUID;
-		m_pChar->m_Act_Targ = m_Targ_UID;
-		return m_pChar->Skill_Start((pCharTarg->GetNPCBrain(false) == NPCBRAIN_ANIMAL) ? SKILL_VETERINARY : SKILL_HEALING);
+		//m_pChar->m_Act_TargPrv = m_Targ_PrvUID;
+		//m_pChar->m_Act_Targ = m_Targ_UID;
+		//return m_pChar->Skill_Start((pCharTarg->GetNPCBrain(false) == NPCBRAIN_ANIMAL) ? SKILL_VETERINARY : SKILL_HEALING);
 
 	case IT_SEED:
 		return m_pChar->Use_Seed( pItemUse, &pt );
