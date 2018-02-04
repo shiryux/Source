@@ -3201,7 +3201,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		// If not, we only resist 0%-15%, depends on random.
 		iResist = Skill_GetBase(SKILL_MAGICRESISTANCE);
 		iResistChance = iResist - (pCharSrc->Skill_GetBase(SKILL_EVALINT) * (spell / 8) / 20);
-		iResist = Skill_UseQuick(SKILL_MAGICRESISTANCE, iResistChance, true, false) ? 25 : Calc_GetRandVal(iResist / 70);
+		iResist = Skill_CheckSuccess(SKILL_MAGICRESISTANCE, iResistChance, false) ? 25 : Calc_GetRandVal(iResist / 70);
 
 		if ( g_Cfg.m_iFeatureAOS & FEATURE_AOS_UPDATE_B )
 		{
@@ -3211,6 +3211,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
+	// Apply all the bonuses
 	if (pSpellDef->IsSpellType(SPELLFLAG_DAMAGE) || pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE) || pSpellDef->IsSpellType(SPELLFLAG_HEAL))
 	{
 		if ( !pCharSrc )
@@ -3224,9 +3225,11 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
+	// Modify base effect for bless/curse (Magery is only half the effect).
 	if (pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE))
-		iEffect = iSkillLevel /= 2;
+		iEffect = iSkillLevel / 2;
 
+	// Set-up @SpellEffect and @Effect Triggers
 	CScriptTriggerArgs Args(static_cast<int>(spell), iSkillLevel, pSourceItem);
 	Args.m_VarsLocal.SetNum("DamageType", 0);
 	Args.m_VarsLocal.SetNum("CreateObject1", pSpellDef->m_idEffect);
@@ -3237,6 +3240,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	Args.m_VarsLocal.SetNum("Resist", iResist);
 	Args.m_VarsLocal.SetNum("Duration", iDuration);
 
+	// @SpellEffect
 	if ( IsTrigUsed(TRIGGER_SPELLEFFECT) )
 	{
 		switch ( OnTrigger(CTRIG_SpellEffect, pCharSrc ? pCharSrc : this, &Args) )
@@ -3247,6 +3251,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
+	// @Effect
 	if ( IsTrigUsed(TRIGGER_EFFECT) )
 	{
 		switch ( Spell_OnTrigger(spell, SPTRIG_EFFECT, pCharSrc ? pCharSrc : this, &Args) )
@@ -3257,20 +3262,20 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		}
 	}
 
-	spell = static_cast<SPELL_TYPE>(Args.m_iN1);
-	iSkillLevel = static_cast<int>(Args.m_iN2);		// remember that effect/duration is calculated before triggers
+	spell			= static_cast<SPELL_TYPE>(Args.m_iN1);
+	iSkillLevel		= static_cast<int>(Args.m_iN2);		// remember that effect/duration is calculated before triggers
 	DAMAGE_TYPE iDmgType = static_cast<DAMAGE_TYPE>(RES_GET_INDEX(Args.m_VarsLocal.GetKeyNum("DamageType")));
 	ITEMID_TYPE iEffectID = static_cast<ITEMID_TYPE>(RES_GET_INDEX(Args.m_VarsLocal.GetKeyNum("CreateObject1")));
-	fExplode = (Args.m_VarsLocal.GetKeyNum("EffectExplode") > 0) ? true : false;
-	iSound = static_cast<SOUND_TYPE>(Args.m_VarsLocal.GetKeyNum("Sound"));
+	fExplode			= (Args.m_VarsLocal.GetKeyNum("EffectExplode") > 0) ? true : false;
+	iSound			= static_cast<SOUND_TYPE>(Args.m_VarsLocal.GetKeyNum("Sound"));
 	iEffect			= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Effect"));
 	iDamageBonus		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("DamageBonus"));
 	iResist			= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Resist"));
 	iDuration		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("Duration"));
-
 	HUE_TYPE iColor = static_cast<HUE_TYPE>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectColor")));
-	DWORD iRender = static_cast<DWORD>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectRender")));
+	DWORD iRender	= static_cast<DWORD>(maximum(0, Args.m_VarsLocal.GetKeyNum("EffectRender")));
 
+	// Apply damage bonus final
 	if (iDamageBonus != 0)
 	{
 		if (pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE))
@@ -3279,9 +3284,11 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 			iEffect += iEffect * iDamageBonus / 100;
 	}
 
+	// Prevent possible error with EffectID
 	if ( iEffectID > ITEMID_QTY )
 		iEffectID = pSpellDef->m_idEffect;
 
+	// We're doing some harm.
 	if ( pSpellDef->IsSpellType(SPELLFLAG_HARM) )
 	{
 		if ( (pCharSrc == this) && !IsSetMagicFlags(MAGICF_CANHARMSELF) && !bReflecting )
@@ -3332,6 +3339,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	if ( pSpellDef->IsSpellType(SPELLFLAG_SCRIPTED) )
 		return true;
 
+	// Create Effect with LOCAL.CreateObject1
 	if ( iEffectID )
 	{
 		if ( pSpellDef->IsSpellType(SPELLFLAG_FX_BOLT) )
@@ -3339,17 +3347,22 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		if ( pSpellDef->IsSpellType(SPELLFLAG_FX_TARG) )
 			Effect(EFFECT_OBJ, iEffectID, this, 0, 15, fExplode, iColor, iRender);
 	}
+
+	// Play Sound from LOCAL.Sound
 	if ( iSound )
 		Sound(iSound);
 
+	// Apply Magic Resistance
 	if ( pSpellDef->IsSpellType(SPELLFLAG_DAMAGE)  || pSpellDef->IsSpellType(SPELLFLAG_CURSE) )
 	{
 		if ( iResist > 0 )
 		{
-			SysMessageDefault(DEFMSG_RESISTMAGIC);
 			iEffect -= iEffect * iResist / 100;
 			if ( iEffect < 0 )
-				iEffect = 0;	//May not do damage, but aversion should be created from the target.
+				iEffect = 0;	 //May not do damage, but aversion should be created from the target.
+
+			SysMessageDefault(DEFMSG_RESISTMAGIC);
+			Skill_Experience(SKILL_MAGICRESISTANCE, iResistChance);
 		}
 	}
 	
