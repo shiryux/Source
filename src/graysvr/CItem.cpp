@@ -1076,7 +1076,7 @@ bool CItem::Stack( CItem * pItem )
 		return true;
 	if ( !IsStackable(pItem) )
 		return false;
-	if ( m_Attr != pItem->m_Attr )
+	if ( (m_Attr &~ ATTR_DECAY) != (pItem->m_Attr &~ ATTR_DECAY) )
 		return false;
 	if ( !m_TagDefs.Compare(&pItem->m_TagDefs) )
 		return false;
@@ -3793,8 +3793,6 @@ bool CItem::Armor_IsRepairable() const
 			return( false );	// Not this way anyhow.
 		case IT_SHIELD:
 		case IT_ARMOR:				// some type of armor. (no real action)
-		case IT_ARMOR_CHAIN:
-		case IT_ARMOR_RING:
 			// ??? Bone armor etc is not !
 			break;
 		case IT_WEAPON_MACE_CROOK:
