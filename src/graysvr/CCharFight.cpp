@@ -1653,6 +1653,7 @@ WORD CChar::CalcArmorDefense() const
 	WORD iArmorCount = 0;
 	WORD iDefense = 0;
 	WORD iDefenseTotal = 0;
+	WORD iDefenseShield = 0;
 	WORD ArmorRegionMax[ARMOR_QTY];
 	for ( int i = 0; i < ARMOR_QTY; i++ )
 		ArmorRegionMax[i] = 0;
@@ -1761,8 +1762,9 @@ WORD CChar::CalcArmorDefense() const
 			case LAYER_HAND2:
 				if ( pItem->IsType(IT_SHIELD) )
 				{
-					if ( IsSetCombatFlags(COMBAT_STACKARMOR) )
-						ArmorRegionMax[ARMOR_HANDS] += iDefense;
+					if (IsSetCombatFlags(COMBAT_STACKARMOR))
+						iDefenseShield = iDefense;
+						// ArmorRegionMax[ARMOR_HANDS] += iDefense;
 					else
 						ArmorRegionMax[ARMOR_HANDS] = maximum(ArmorRegionMax[ARMOR_HANDS], iDefense);
 				}
@@ -1781,8 +1783,8 @@ WORD CChar::CalcArmorDefense() const
 		for ( int i = 0; i < ARMOR_QTY; i++ )
 			iDefenseTotal += sm_ArmorLayers[i].m_wCoverage * ArmorRegionMax[i];
 	}
-
-	return (iDefenseTotal / 100) + m_ModAr;
+	
+	return (iDefenseTotal / 100) + iDefenseShield + m_ModAr;
 }
 
 // Someone hit us.

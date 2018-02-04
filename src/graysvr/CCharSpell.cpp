@@ -3194,13 +3194,13 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	}
 
 	// Check if the spell is being resisted
-	int iResist = 0;
-	if ( pSpellDef->IsSpellType(SPELLFLAG_RESIST) && pCharSrc && !fPotion )
+	int iResist, iResistChance = 0;
+	if ( pSpellDef->IsSpellType(SPELLFLAG_RESIST) && pCharSrc != this && !fPotion )
 	{
 		// If ResistSpells is successful, then we resist 25%
 		// If not, we only resist 0%-15%, depends on random.
 		iResist = Skill_GetBase(SKILL_MAGICRESISTANCE);
-		int iResistChance = iResist - (pCharSrc->Skill_GetBase(SKILL_EVALINT) * (spell / 8) / 20);
+		iResistChance = iResist - (pCharSrc->Skill_GetBase(SKILL_EVALINT) * (spell / 8) / 20);
 		iResist = Skill_UseQuick(SKILL_MAGICRESISTANCE, iResistChance, true, false) ? 25 : Calc_GetRandVal(iResist / 70);
 
 		if ( g_Cfg.m_iFeatureAOS & FEATURE_AOS_UPDATE_B )
