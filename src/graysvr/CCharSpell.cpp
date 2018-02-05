@@ -3807,9 +3807,21 @@ int CChar::GetSpellDuration(SPELL_TYPE spell, int iSkillLevel, CChar *pCharSrc)
 
 	if ( iDuration == -1 )
 	{
-		const CSpellDef *pSpellDef = g_Cfg.GetSpellDef(spell);
-		ASSERT(pSpellDef);
-		iDuration = pSpellDef->m_Duration.GetLinear(iSkillLevel) / 10;
+		switch (spell)
+		{
+			case SPELL_Paralyze:
+				iDuration = 7 + (pCharSrc->Skill_GetBase(SKILL_MAGERY) / 50);
+				break;
+
+			default:
+			{
+				const CSpellDef *pSpellDef = g_Cfg.GetSpellDef(spell);
+				ASSERT(pSpellDef);
+				iDuration = pSpellDef->m_Duration.GetLinear(iSkillLevel) / 10;
+			}
+		}
+
 	}
+
 	return iDuration * TICK_PER_SEC;
 }

@@ -3117,7 +3117,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		// Legacy pre-SE formula
 		CItem *pItemHit = NULL;
 		int ParryChance = 0;
-		if (pCharTarg->IsStatFlag(STATF_HasShield))	// parry using shield
+		if (pCharTarg->IsStatFlag(STATF_HasShield) && pCharTarg->LayerFind(LAYER_HAND2))	// parry using shield
 		{
 			pItemHit = pCharTarg->LayerFind(LAYER_HAND2);
 			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 30;
@@ -3128,16 +3128,8 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			if (Dex < 80)
 				ParryChance = ParryChance * (20 + Dex) / 100;
 
-			if (pCharTarg->Skill_UseQuick(SKILL_PARRYING, ParryChance, true, false))
-			{
-				if (IsPriv(PRIV_DETAIL))
-					SysMessageDefault(DEFMSG_COMBAT_PARRY);
-				if (pItemHit && (Calc_GetRandVal(100) >= 50))
-					pItemHit->OnTakeDamage(1, this, iTyp);
-
+			if (pCharTarg->Skill_CheckSuccess(SKILL_PARRYING, ParryChance, true))
 				iParried = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 25;
-				pCharTarg->Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16);		// moved to scripts (@UseQuick on Parrying skill)
-			}
 		}
 	}
 
@@ -3147,15 +3139,12 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	// Setting LOCALs
 	CScriptTriggerArgs Args(iDmg, iTyp, pWeapon);
 	Args.m_VarsLocal.SetNum("ItemDamageChance", 40);
-
-	if (iParried)
-		Args.m_VarsLocal.SetNum("ParryingReduction", iParried);
-	else
-		Args.m_VarsLocal.SetNum("ParryingReduction", 0);
+	Args.m_VarsLocal.SetNum("ParryingReduction", iParried);
 
 	if ( pAmmo )
 		Args.m_VarsLocal.SetNum("Arrow", pAmmo->GetUID());
 
+	// @SkillSuccess
 	if ( IsTrigUsed(TRIGGER_SKILLSUCCESS) )
 	{
 		if ( Skill_OnCharTrigger(skill, CTRIG_SkillSuccess) == TRIGRET_RET_TRUE )
@@ -3164,6 +3153,8 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			return WAR_SWING_EQUIPPING;		// ok, so no hit - skill failed. Pah!
 		}
 	}
+
+	// @Success
 	if ( IsTrigUsed(TRIGGER_SUCCESS) )
 	{
 		if ( Skill_OnTrigger(skill, SKTRIG_SUCCESS) == TRIGRET_RET_TRUE )
@@ -3173,6 +3164,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		}
 	}
 
+	// @Hit
 	if ( IsTrigUsed(TRIGGER_HIT) )
 	{
 		if ( OnTrigger(CTRIG_Hit, pCharTarg, &Args) == TRIGRET_RET_TRUE )
@@ -3181,21 +3173,29 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		if ( Args.m_VarsLocal.GetKeyNum("ArrowHandled") != 0 )		// if arrow is handled by script, do nothing with it further
 			pAmmo = NULL;
 
-		iDmg = static_cast<int>(Args.m_iN1);
-		iTyp = static_cast<DAMAGE_TYPE>(Args.m_iN2);
-		iDmg -= iDmg * static_cast<int>(Args.m_VarsLocal.GetKeyNum("ParryingReduction")) / 100;
+		iDmg			= static_cast<int>(Args.m_iN1);
+		iTyp			= static_cast<DAMAGE_TYPE>(Args.m_iN2);
+		iParried		= static_cast<int>(Args.m_VarsLocal.GetKeyNum("ParryingReduction"));
+
+		// Check if I parried (source or scripted)
+		if ( iParried )
+		{
+			iDmg -= iDmg * static_cast<int>(Args.m_VarsLocal.GetKeyNum("ParryingReduction")) / 100;
+			pCharTarg->Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16);
+			pCharTarg->Skill_Experience(SKILL_PARRYING, iParried);
+			pCharTarg->SysMessage("Bloqueas el golpe parcialmente.");
+			SysMessageDefault(DEFMSG_COMBAT_PARRY);
+			
+			if ( Calc_GetRandVal(100) >= 60 )
+				pCharTarg->LayerFind(LAYER_HAND2)->OnTakeDamage(1, this, iTyp);
+
+		}
 	}
 
-	// BAD BAD Healing fix.. Cant think of something else -- Radiant
-	if ( pCharTarg->m_Act_SkillCurrent == SKILL_HEALING )
-	{
-		pCharTarg->SysMessageDefault(DEFMSG_HEALING_INTERRUPT);
-		pCharTarg->Skill_Cleanup();
-	}
-
+	// Bounce Arrow to NPCs
 	if ( pAmmo )
 	{
-		if ( pCharTarg->m_pNPC && (40 >= Calc_GetRandVal(100)) )
+		if ( pCharTarg->m_pNPC && Calc_GetRandVal(100) >= 60 )
 		{
 			pAmmo->UnStackSplit(1);
 			pCharTarg->ItemBounce(pAmmo, false);
