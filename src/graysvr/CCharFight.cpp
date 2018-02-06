@@ -3214,7 +3214,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			if ( Skill_CheckSuccess(SKILL_POISONING, pWeapon->m_itWeapon.m_poison_skill, false) )
 			{
 				BYTE iPoisonDeliver = static_cast<BYTE>(Calc_GetRandVal(pWeapon->m_itWeapon.m_poison_skill));
-				pCharTarg->SetPoison(((iPoisonDeliver * 10) + Skill_GetBase(SKILL_POISONING)) / 2, 15, this);
+				pCharTarg->SetPoison(((iPoisonDeliver * 10) + Skill_GetBase(SKILL_POISONING)) / 2, Skill_GetBase(SKILL_POISONING) / 66, this);
 				pWeapon->m_itWeapon.m_poison_skill -= iPoisonDeliver / 5;	// reduce weapon poison charges
 				pWeapon->UpdatePropertyFlag(AUTOTOOLTIP_FLAG_POISON);
 			}
@@ -3235,7 +3235,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			{
 				if (m_TagDefs.GetKeyNum("HITPOISON"))
 					iPoisoningSkill = m_TagDefs.GetKeyNum("HITPOISON") * 200;
-				pCharTarg->SetPoison(iPoisoningSkill, 15, this);
+				pCharTarg->SetPoison(iPoisoningSkill, iPoisoningSkill / 66, this);
 			}
 		}
 	}

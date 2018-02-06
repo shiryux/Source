@@ -1867,7 +1867,7 @@ bool CChar::Spell_Equip_OnTick(CItem *pItem)
 			// Apply damage
 			iDmg = IMULDIV(Stat_GetMax(STAT_STR), g_Cfg.GetSpellEffect(SPELL_Poison, pItem->m_itSpell.m_spelllevel), 100);
 			OnTakeDamage(iDmg, pItem->m_uidLink.CharFind(), DAMAGE_MAGIC|DAMAGE_POISON, 0, 0, 0, 100, 0);
-			pItem->SetTimeout((pItem->m_itSpell.m_spelllevel / 200) * TICK_PER_SEC);
+			pItem->SetTimeout(5 * TICK_PER_SEC);
 
 			if ( IsSetOF(OF_Buffs) && m_pClient )
 			{
@@ -3401,7 +3401,7 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		case SPELL_Poison:
 		case SPELL_Poison_Field:
 			iSkillLevel = (pCharSrc->Skill_GetBase(SKILL_MAGERY) + (pCharSrc->Skill_GetBase(SKILL_POISONING) - Skill_GetBase(SKILL_POISONING))) / 2;
-			SetPoison(iSkillLevel, 15, pCharSrc);
+			SetPoison(iSkillLevel, iSkillLevel / 66, pCharSrc);
 			break;
 
 		case SPELL_Cure:

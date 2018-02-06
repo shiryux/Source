@@ -2532,9 +2532,9 @@ bool CChar::SetPoison( int iSkill, int iTicks, CChar * pCharSrc )
 		return false;
 
 	LayerAdd(pPoison, LAYER_FLAG_Poison);
-	pPoison->m_itSpell.m_spellcharges = 15;				// Duration 15 ticks (15 * 5 = 75 secs max level)
+	pPoison->m_itSpell.m_spellcharges = min(6, iSkill / 66);				// Duration 15 ticks (15 * 5 = 75 secs max level)
 	pPoison->m_itSpell.m_spelllevel = iSkill;			// I need to save the skill somehow.
-	pPoison->SetTimeout((iSkill / 200) * TICK_PER_SEC); // Delay between hits
+	pPoison->SetTimeout(5 * TICK_PER_SEC); // Delay between hits
 
 	if ( g_Cfg.m_iFeatureAOS & FEATURE_AOS_UPDATE_B )
 	{
