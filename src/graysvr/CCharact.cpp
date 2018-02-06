@@ -2506,17 +2506,19 @@ bool CChar::SetPoisonCure( int iSkill, bool fExtra )
 
 // SPELL_Poison
 // iSkill = 0-1000 = how bad the poison is
-// iTicks = how long to last. Should be 0 with MAGIFC_OSIFORMULAS enabled to calculate defaults
+// iTicks = how long to last.
+// pCharSrc = who attacked me.
 // Physical attack of poisoning.
 bool CChar::SetPoison( int iSkill, int iTicks, CChar * pCharSrc )
 {
 	ADDTOCALLSTACK("CChar::SetPoison");
 
+	// Try to create poison spell
 	const CSpellDef *pSpellDef = g_Cfg.GetSpellDef(SPELL_Poison);
 	if ( !pSpellDef )
 		return false;
 
-	// Release if paralyzed ?
+	// Release if paralyzed
 	if ( !pSpellDef->IsSpellType(SPELLFLAG_NOUNPARALYZE) )
 	{
 		CItem *pParalyze = LayerFind(LAYER_SPELL_Paralyze);
@@ -2524,64 +2526,15 @@ bool CChar::SetPoison( int iSkill, int iTicks, CChar * pCharSrc )
 			pParalyze->Delete();
 	}
 
-	CItem *pPoison = Spell_Effect_Create(SPELL_Poison, LAYER_FLAG_Poison, iSkill, 1 + Calc_GetRandVal(2) * TICK_PER_SEC, pCharSrc, false);
+	// Create effect
+	CItem *pPoison = Spell_Effect_Create(SPELL_Poison, LAYER_FLAG_Poison, iSkill, 1, pCharSrc, false);
 	if ( !pPoison )
 		return false;
+
 	LayerAdd(pPoison, LAYER_FLAG_Poison);
-
-	if ( IsSetMagicFlags(MAGICF_OSIFORMULAS) )
-	{
-		if ( iSkill >= 1000 )
-		{
-			if ( GetDist(pCharSrc) < 3 && Calc_GetRandVal(10) == 1 )
-			{
-				// Lethal poison
-				pPoison->m_itSpell.m_pattern = static_cast<BYTE>(IMULDIV(Stat_GetMax(STAT_STR), Calc_GetRandVal2(16, 33), 100));
-				pPoison->m_itSpell.m_spelllevel = 4;
-				pPoison->m_itSpell.m_spellcharges = 80;		//1 min, 20 sec
-				pPoison->SetTimeout(50);
-			}
-			else
-			{
-				// Deadly poison
-				pPoison->m_itSpell.m_pattern = static_cast<BYTE>(IMULDIV(Stat_GetMax(STAT_STR), Calc_GetRandVal2(15, 30), 100));
-				pPoison->m_itSpell.m_spelllevel = 3;
-				pPoison->m_itSpell.m_spellcharges = 60;
-				pPoison->SetTimeout(50);
-			}
-		}
-		else if ( iSkill >= 851 )
-		{
-			// Greater poison
-			pPoison->m_itSpell.m_pattern = static_cast<BYTE>(IMULDIV(Stat_GetMax(STAT_STR), Calc_GetRandVal2(7, 15), 100));
-			pPoison->m_itSpell.m_spelllevel = 2;
-			pPoison->m_itSpell.m_spellcharges = 60;
-			pPoison->SetTimeout(40);
-		}
-		else if ( iSkill >= 600 )
-		{
-			// Poison
-			pPoison->m_itSpell.m_pattern = static_cast<BYTE>(IMULDIV(Stat_GetMax(STAT_STR), Calc_GetRandVal2(5, 10), 100));
-			pPoison->m_itSpell.m_spelllevel = 1;
-			pPoison->m_itSpell.m_spellcharges = 30;
-			pPoison->SetTimeout(30);
-		}
-		else
-		{
-			// Lesser poison
-			pPoison->m_itSpell.m_spelllevel = 0;
-			pPoison->m_itSpell.m_spellcharges = 30;
-			pPoison->SetTimeout(20);
-		}
-
-		if ( iTicks > 0 )
-			pPoison->m_itSpell.m_spellcharges = iTicks;
-	}
-	else
-	{
-		pPoison->m_itSpell.m_spellcharges = iTicks;		// effect duration
-		pPoison->SetTimeout((5 + Calc_GetRandLLVal(4)) * TICK_PER_SEC);
-	}
+	pPoison->m_itSpell.m_spellcharges = 15;				// Duration 15 ticks (15 * 5 = 75 secs max level)
+	pPoison->m_itSpell.m_spelllevel = iSkill;			// I need to save the skill somehow.
+	pPoison->SetTimeout((iSkill / 200) * TICK_PER_SEC); // Delay between hits
 
 	if ( g_Cfg.m_iFeatureAOS & FEATURE_AOS_UPDATE_B )
 	{
@@ -2596,7 +2549,7 @@ bool CChar::SetPoison( int iSkill, int iTicks, CChar * pCharSrc )
 	if ( m_pClient && IsSetOF(OF_Buffs) )
 	{
 		m_pClient->removeBuff(BI_POISON);
-		m_pClient->addBuff(BI_POISON, 1017383, 1070722, static_cast<WORD>(pPoison->m_itSpell.m_spellcharges));
+		m_pClient->addBuff(BI_POISON, 1017383, 1070722, static_cast<WORD>(pPoison->GetTimerAdjusted()) );
 	}
 
 	SysMessageDefault(DEFMSG_JUST_BEEN_POISONED);

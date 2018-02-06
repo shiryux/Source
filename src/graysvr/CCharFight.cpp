@@ -3138,7 +3138,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	
 	// Setting LOCALs
 	CScriptTriggerArgs Args(iDmg, iTyp, pWeapon);
-	Args.m_VarsLocal.SetNum("ItemDamageChance", 40);
+	Args.m_VarsLocal.SetNum("ItemDamageChance", 5);
 	Args.m_VarsLocal.SetNum("ParryingReduction", iParried);
 
 	if ( pAmmo )
@@ -3209,13 +3209,15 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	if ( pWeapon )
 	{
 		// Check if the weapon is poisoned
-		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && pWeapon->m_itWeapon.m_poison_skill && pWeapon->m_itWeapon.m_poison_skill > Calc_GetRandVal(100) )
+		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && pWeapon->m_itWeapon.m_poison_skill )
 		{
-			BYTE iPoisonDeliver = static_cast<BYTE>(Calc_GetRandVal(pWeapon->m_itWeapon.m_poison_skill));
-			pCharTarg->SetPoison(10 * iPoisonDeliver, iPoisonDeliver / 5, this);
-
-			pWeapon->m_itWeapon.m_poison_skill -= iPoisonDeliver / 2;	// reduce weapon poison charges
-			pWeapon->UpdatePropertyFlag(AUTOTOOLTIP_FLAG_POISON);
+			if ( Skill_CheckSuccess(SKILL_POISONING, pWeapon->m_itWeapon.m_poison_skill, false) )
+			{
+				BYTE iPoisonDeliver = static_cast<BYTE>(Calc_GetRandVal(pWeapon->m_itWeapon.m_poison_skill));
+				pCharTarg->SetPoison(((iPoisonDeliver * 10) + Skill_GetBase(SKILL_POISONING)) / 2, 15, this);
+				pWeapon->m_itWeapon.m_poison_skill -= iPoisonDeliver / 5;	// reduce weapon poison charges
+				pWeapon->UpdatePropertyFlag(AUTOTOOLTIP_FLAG_POISON);
+			}
 		}
 
 		// Check if the weapon will be damaged
@@ -3226,11 +3228,15 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	else if ( NPC_IsMonster() )
 	{
 		// Base poisoning for NPCs
-		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && 50 >= Calc_GetRandVal(100) )
+		int iPoisoningSkill = Skill_GetBase(SKILL_POISONING);
+		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && iPoisoningSkill )
 		{
-			int iPoisoningSkill = Skill_GetBase(SKILL_POISONING);
-			if ( iPoisoningSkill )
-				pCharTarg->SetPoison(Calc_GetRandVal(iPoisoningSkill), Calc_GetRandVal(iPoisoningSkill / 50), this);
+			if (Skill_CheckSuccess(SKILL_POISONING, pCharTarg->Skill_GetBase(SKILL_POISONING), true))
+			{
+				if (m_TagDefs.GetKeyNum("HITPOISON"))
+					iPoisoningSkill = m_TagDefs.GetKeyNum("HITPOISON") * 200;
+				pCharTarg->SetPoison(iPoisoningSkill, 15, this);
+			}
 		}
 	}
 

@@ -796,7 +796,7 @@ bool CChar::Use_EatQty( CItem * pFood, WORD iQty )
 		case IT_FOOD_RAW:
 		case IT_MEAT_RAW:
 			if ( pFood->m_itFood.m_poison_skill )	// was the food poisoned?
-				SetPoison(pFood->m_itFood.m_poison_skill * 10, 1 + (pFood->m_itFood.m_poison_skill / 50), this);
+				SetPoison(pFood->m_itFood.m_poison_skill * 10, 15, this);
 		default:
 			break;
 	}
@@ -942,7 +942,7 @@ bool CChar::Use_Drink( CItem * pItem )
 
 		Stat_SetVal(STAT_FOOD, Stat_GetVal(STAT_FOOD) + iRestore);
 		if ( pItem->m_itFood.m_poison_skill )
-			SetPoison(pItem->m_itFood.m_poison_skill * 10, 1 + (pItem->m_itFood.m_poison_skill / 50), this);
+			SetPoison(pItem->m_itFood.m_poison_skill * 10, 15, this);
 	}
 
 	//Sound(sm_DrinkSounds[Calc_GetRandVal(COUNTOF(sm_DrinkSounds))]);

@@ -3193,7 +3193,7 @@ bool CChar::r_Verb( CScript &s, CTextConsole * pSrc ) // Execute command from sc
 		case CHV_POISON:
 		{		
 			int iSkill = s.GetArgVal();
-			int iTicks = iSkill / 50; 
+			int iTicks = 15; 
 			INT64		piCmd[2];
 			if (Str_ParseCmds(s.GetArgRaw(), piCmd, COUNTOF(piCmd)) > 1)
 				iTicks = static_cast<int>(piCmd[1]);

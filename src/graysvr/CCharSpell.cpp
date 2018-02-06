@@ -1825,101 +1825,55 @@ bool CChar::Spell_Equip_OnTick(CItem *pItem)
 			pItem->SetTimeout(Calc_GetRandLLVal2(15, 30) * TICK_PER_SEC);
 			break;
 		}
-		case SPELL_Poison:
+		case SPELL_Poison: // Make poison damage
 		{
 			// Both potions and poison spells use this.
 			// m_itSpell.m_spelllevel = strength of the poison ! 0-1000
-
 			if ( iCharges <= 0 )
 				return false;
 
 			int iDmg = 0;
-			// The poison in your body is having an effect.
-			if ( IsSetMagicFlags(MAGICF_OSIFORMULAS) )
+			iLevel = pItem->m_itSpell.m_spelllevel / 200;
+			// pItem->m_itSpell.m_spelllevel -= 50;
+
+			// Poison Messages
+			static LPCTSTR const sm_Poison_Message[] =
 			{
-				//iLevel = pItem->m_itSpell.m_spelllevel;	//Osi Formulas store directly the strenght in more2
-				iDmg = pItem->m_itSpell.m_pattern;
-				switch ( iLevel )
-				{
-					default:
-					case 0:	//Lesser
-						iDmg = IMULDIV(Stat_GetVal(STAT_STR), Calc_GetRandVal2(4, 7), 100);	// damage is different for lesser: it gets value from current hp
-						pItem->SetTimeout(20);
-						break;
-					case 1:	//Standard
-						pItem->SetTimeout(30);
-						break;
-					case 2:	//Greater
-						pItem->SetTimeout(40);
-						break;
-					case 3:	//Deadly
-						pItem->SetTimeout(50);
-						break;
-					case 4:	//Lethal
-						pItem->SetTimeout(50);
-						break;
-				}
+				g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_1),
+				g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_2),
+				g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_3),
+				g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_4)
+			};
 
-				static LPCTSTR const sm_Poison_Message[] =
-				{
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_LESSER),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_STANDARD),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_GREATER),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_DEADLY),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_LETHAL)
+			int iLevelTest = 0;
+			if (iLevel < 200)	// Lesser
+				iLevelTest = 0;
+			else if (iLevel < 400) // Normal
+				iLevelTest = 1;
+			else if (iLevel < 800) // Greater
+				iLevelTest = 2;
+			else	// Deadly.
+				iLevelTest = 3;
 
-				};
-				static LPCTSTR const sm_Poison_Message_Other[] =
-				{
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_LESSER1),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_STANDARD1),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_GREATER1),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_DEADLY1),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_OSIPOISON_LETHAL1)
+			CChar *pCharSrc = pItem->m_uidLink.CharFind();
+			if ( !pCharSrc )
+				return false;
 
-				};
-				Emote2(sm_Poison_Message[iLevel], sm_Poison_Message_Other[iLevel], m_pClient);
-				SysMessagef(g_Cfg.GetDefaultMsg(DEFMSG_SPELL_YOUFEEL), sm_Poison_Message[iLevel]);
-			}
-			else
-			{
-				if ( iLevel < 50 )
-					return false;
-				if ( iLevel < 200 )	// Lesser
-					iLevel = 0;
-				else if ( iLevel < 400 ) // Normal
-					iLevel = 1;
-				else if ( iLevel < 800 ) // Greater
-					iLevel = 2;
-				else	// Deadly.
-					iLevel = 3;
+			TCHAR *pszMsg = Str_GetTemp();
+			sprintf(pszMsg, g_Cfg.GetDefaultMsg(DEFMSG_SPELL_LOOKS), sm_Poison_Message[iLevelTest]);
+			Emote(pszMsg, m_pClient);
+			SysMessagef(g_Cfg.GetDefaultMsg(DEFMSG_SPELL_YOUFEEL), sm_Poison_Message[iLevelTest]);
 
-				pItem->m_itSpell.m_spelllevel -= 50;	// gets weaker too.	Only on old formulas
-				iDmg = IMULDIV(Stat_GetMax(STAT_STR), iLevel * 2, 100);
-				pItem->SetTimeout((5 + Calc_GetRandLLVal(4)) * TICK_PER_SEC);
-
-				static LPCTSTR const sm_Poison_Message[] =
-				{
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_1),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_2),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_3),
-					g_Cfg.GetDefaultMsg(DEFMSG_SPELL_POISON_4)
-				};
-
-				TCHAR *pszMsg = Str_GetTemp();
-				sprintf(pszMsg, g_Cfg.GetDefaultMsg(DEFMSG_SPELL_LOOKS), sm_Poison_Message[iLevel]);
-				Emote(pszMsg, m_pClient);
-				SysMessagef(g_Cfg.GetDefaultMsg(DEFMSG_SPELL_YOUFEEL), sm_Poison_Message[iLevel]);
-			}
-
-			static const int sm_iPoisonMax[] = { 2, 4, 6, 8, 10 };
-			OnTakeDamage(maximum(sm_iPoisonMax[iLevel], iDmg), pItem->m_uidLink.CharFind(), DAMAGE_MAGIC|DAMAGE_POISON|DAMAGE_NODISTURB|DAMAGE_NOREVEAL|DAMAGE_NOUNPARALYZE, 0, 0, 0, 100, 0);
+			// Apply damage
+			iDmg = IMULDIV(Stat_GetMax(STAT_STR), g_Cfg.GetSpellEffect(SPELL_Poison, pItem->m_itSpell.m_spelllevel), 100);
+			OnTakeDamage(iDmg, pItem->m_uidLink.CharFind(), DAMAGE_MAGIC|DAMAGE_POISON, 0, 0, 0, 100, 0);
+			pItem->SetTimeout((pItem->m_itSpell.m_spelllevel / 200) * TICK_PER_SEC);
 
 			if ( IsSetOF(OF_Buffs) && m_pClient )
 			{
 				m_pClient->removeBuff(BI_POISON);
-				m_pClient->addBuff(BI_POISON, 1017383, 1070722, static_cast<WORD>(pItem->GetTimerAdjusted()));
-			}
+				m_pClient->addBuff(BI_POISON, 1017383, 1070722, static_cast<WORD>(pItem->GetTimerAdjusted()) );
+			}			
 			break;
 		}
 		case SPELL_Strangle:
@@ -3446,9 +3400,8 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 
 		case SPELL_Poison:
 		case SPELL_Poison_Field:
-			if ( pCharSrc && IsSetMagicFlags(MAGICF_OSIFORMULAS) )
-				iSkillLevel = (pCharSrc->Skill_GetBase(SKILL_MAGERY) + pCharSrc->Skill_GetBase(SKILL_POISONING)) / 2;
-			SetPoison(iSkillLevel, iSkillLevel / 50, pCharSrc);
+			iSkillLevel = (pCharSrc->Skill_GetBase(SKILL_MAGERY) + (pCharSrc->Skill_GetBase(SKILL_POISONING) - Skill_GetBase(SKILL_POISONING))) / 2;
+			SetPoison(iSkillLevel, 15, pCharSrc);
 			break;
 
 		case SPELL_Cure:
