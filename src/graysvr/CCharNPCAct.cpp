@@ -2782,21 +2782,13 @@ void CChar::NPC_Act_Idle()
 				break;
 
 			default:
+				{
 				// TAG.OVERRIDE.SPIDERWEB
 				CVarDefCont * pValue = GetKey("OVERRIDE.SPIDERWEB",true);
 				if ( pValue )
-				{
-					if ( GetDispID() != CREID_GIANT_SPIDER )
-					{
+					if (!g_World.IsItemTypeNear(GetTopPoint(), IT_WEB, 0, false, true))
 						Action_StartSpecial(CREID_GIANT_SPIDER);
-						return;
-					}
-				} else {
-					if ( GetDispID() == CREID_GIANT_SPIDER )
-					{
-						Action_StartSpecial(CREID_GIANT_SPIDER);
-						return;
-					}
+				return;
 				}
 		}
 	}
