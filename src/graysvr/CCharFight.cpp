@@ -3120,7 +3120,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		if (pCharTarg->IsStatFlag(STATF_HasShield) && pCharTarg->LayerFind(LAYER_HAND2))	// parry using shield
 		{
 			pItemHit = pCharTarg->LayerFind(LAYER_HAND2);
-			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 30;
+			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 33;
 			if (pCharTarg->Skill_GetBase(SKILL_PARRYING) >= 1000)
 				ParryChance += 5;
 
@@ -3128,7 +3128,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			if (Dex < 80)
 				ParryChance = ParryChance * (20 + Dex) / 100;
 
-			if (pCharTarg->Skill_CheckSuccess(SKILL_PARRYING, ParryChance, true))
+			if ( Calc_GetRandVal2(0, 100) < ParryChance)
 				iParried = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 25;
 		}
 	}
@@ -3186,7 +3186,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			pCharTarg->SysMessage("Bloqueas el golpe parcialmente.");
 			SysMessageDefault(DEFMSG_COMBAT_PARRY);
 			
-			if ( Calc_GetRandVal(100) >= 60 )
+			if ( Calc_GetRandVal(100) >= 60 && pCharTarg->LayerFind(LAYER_HAND2) )	
 				pCharTarg->LayerFind(LAYER_HAND2)->OnTakeDamage(1, this, iTyp);
 
 		}
