@@ -1883,7 +1883,7 @@ effect_bounce:
 		{
 			// pre-AOS armor rating (AR)
 			int iArmorRating = pCharDef->m_defense + m_defense;
-			int iDef = Calc_GetRandVal2((iArmorRating) / 2, iArmorRating);
+			int iDef = Calc_GetRandVal2(0, iArmorRating);
 
 			if ( uType & DAMAGE_MAGIC )		// magical damage halves effectiveness of defense
 				iDef /= 2;
