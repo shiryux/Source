@@ -199,7 +199,7 @@ int CResource::Calc_CombatChanceToHit( CChar * pChar, CChar * pCharTarg )
 				iAttackerHitChance += 5;
 			}
 			iAttackerSkill = ((iAttackerSkill / 10) + 20) * (100 + minimum(iAttackerHitChance, 45));
-			int iTargetSkill = ((pCharTarg->Skill_GetBase(skillTarget) / 10) + 20) * (100 + minimum(static_cast<int>(pCharTarg->GetDefNum("INCREASEDEFCHANCE")), 45));
+			int iTargetSkill = ((pCharTarg->Skill_GetBase(skillTarget) / 10) + 20) * 100;
 
 			int iChance = iAttackerSkill * 100 / (iTargetSkill * 2);
 			if ( iChance < 2 )
