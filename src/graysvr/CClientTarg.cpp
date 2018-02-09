@@ -2389,25 +2389,9 @@ bool CClient::OnTarg_Use_Item( CObjBase * pObjTarg, CPointMap & pt, ITEMID_TYPE 
 		{
 			case IT_LEATHER:
 			case IT_HIDE:
-			{
-				if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-				{
-					CScriptTriggerArgs args("sm_tailor_leather");
-					if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-						return true;
-				}
-				return Cmd_Skill_Menu( g_Cfg.ResourceGetIDType( RES_SKILLMENU, "sm_tailor_leather" ) );
-			}
 			case IT_CLOTH:
-			{
-				if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-				{
-					CScriptTriggerArgs args("sm_tailor_cloth");
-					if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-						return true;
-				}
-				return Cmd_Skill_Menu( g_Cfg.ResourceGetIDType( RES_SKILLMENU, "sm_tailor_cloth" ) );
-			}
+				return CraftingSelect(SKILL_TAILORING);
+			
 			default:
 				break;
 		}
