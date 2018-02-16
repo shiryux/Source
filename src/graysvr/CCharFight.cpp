@@ -1282,157 +1282,6 @@ int CChar::Skill_Snooping( SKTRIG_TYPE stage )
 	return( 0 );
 }
 
-// m_Act_Targ = object to steal.
-// RETURN:
-// -SKTRIG_QTY = no chance. and not a crime
-// -SKTRIG_FAIL = no chance and caught.
-// 0-100 = difficulty = percent chance of failure.
-int CChar::Skill_Stealing( SKTRIG_TYPE stage )
-{
-	ADDTOCALLSTACK("CChar::Skill_Stealing");
-	if ( stage == SKTRIG_STROKE )
-		return( 0 );
-
-	CItem * pItem = m_Act_Targ.ItemFind();
-	CChar * pCharMark = NULL;
-	if ( pItem == NULL )	// on a chars head ? = random steal.
-	{
-		pCharMark = m_Act_Targ.CharFind();
-		if ( pCharMark == NULL )
-		{
-			SysMessageDefault( DEFMSG_STEALING_NOTHING );
-			return( -SKTRIG_QTY );
-		}
-		CItemContainer *pPack = pCharMark->GetContainer(LAYER_PACK);
-		if ( pPack == NULL )
-		{
-cantsteal:
-			SysMessageDefault( DEFMSG_STEALING_EMPTY );
-			return( -SKTRIG_QTY );
-		}
-
-		pItem = pPack->GetAt(Calc_GetRandVal(pPack->GetCount()));		// random item on backpack
-		if ( !pItem )
-			goto cantsteal;
-
-		m_Act_Targ = pItem->GetUID();
-	}
-
-	// Special cases.
-	CContainer *pContainer = dynamic_cast<CContainer *>(pItem->GetParentObj());
-	if ( pContainer )
-	{
-		CItemCorpse *pCorpse = dynamic_cast<CItemCorpse *>(pContainer);
-		if ( pCorpse )
-		{
-			SysMessageDefault( DEFMSG_STEALING_CORPSE );
-			return( -SKTRIG_ABORT );
-		}
-	}
-	CItem *pCItem = dynamic_cast<CItem *>(pItem->GetParentObj());
-	if ( pCItem )
-	{
-		if ( pCItem->GetType() == IT_GAME_BOARD )
-		{
-			SysMessageDefault( DEFMSG_STEALING_GAMEBOARD );
-			return( -SKTRIG_ABORT );
-		}
-		if ( pCItem->GetType() == IT_EQ_TRADE_WINDOW )
-		{
-			SysMessageDefault( DEFMSG_STEALING_TRADE );
-			return( -SKTRIG_ABORT );
-		}
-	}
-	if ( pItem->IsType(IT_TRAIN_PICKPOCKET))
-	{
-		SysMessageDefault( DEFMSG_STEALING_PICKPOCKET );
-		return -SKTRIG_QTY;
-	}
-	if ( pItem->IsType( IT_GAME_PIECE ))
-	{
-		return -SKTRIG_QTY;
-	}
-	if ( ! CanTouch( pItem ))
-	{
-		SysMessageDefault( DEFMSG_STEALING_REACH );
-		return( -SKTRIG_ABORT );
-	}
-	if ( ! CanMove( pItem ) || ! CanCarry( pItem ))
-	{
-		SysMessageDefault( DEFMSG_STEALING_HEAVY );
-		return( -SKTRIG_ABORT );
-	}
-	if ( ! IsTakeCrime( pItem, & pCharMark ))
-	{
-		SysMessageDefault( DEFMSG_STEALING_NONEED );
-
-		// Just pick it up ?
-		return( -SKTRIG_QTY );
-	}
-	if ( m_pArea->IsFlag(REGION_FLAG_SAFE))
-	{
-		SysMessageDefault( DEFMSG_STEALING_STOP );
-		return( -SKTRIG_QTY );
-	}
-
-	Reveal();	// If we take an item off the ground we are revealed.
-
-	bool fGround = false;
-	if ( pCharMark != NULL )
-	{
-		if ( GetTopDist3D( pCharMark ) > 2 )
-		{
-			SysMessageDefault( DEFMSG_STEALING_MARK );
-			return -SKTRIG_QTY;
-		}
-		if ( m_pArea->IsFlag(REGION_FLAG_NO_PVP) && pCharMark->m_pPlayer && ! IsPriv(PRIV_GM))
-		{
-			SysMessageDefault( DEFMSG_STEALING_SAFE );
-			return( -1 );
-		}
-		if ( GetPrivLevel() < pCharMark->GetPrivLevel())
-		{
-			return -SKTRIG_FAIL;
-		}
-		if ( stage == SKTRIG_START )
-		{
-			return g_Cfg.Calc_StealingItem( this, pItem, pCharMark );
-		}
-	}
-	else
-	{
-		// stealing off the ground should always succeed.
-		// it's just a matter of getting caught.
-		if ( stage == SKTRIG_START )
-			return( 1 );	// town stuff on the ground is too easy.
-
-		fGround = true;
-	}
-
-	// Deliver the goods.
-
-	if ( stage == SKTRIG_SUCCESS || fGround )
-	{
-		pItem->ClrAttr(ATTR_OWNED);	// Now it's mine
-		CItemContainer *pPack = GetContainer(LAYER_PACK);
-		if ( pPack && (pItem->GetParent() != pPack) )
-		{
-			pItem->RemoveFromView();
-			// Put in my invent.
-			pPack->ContentAdd( pItem );
-		}
-	}
-
-	if ( m_Act_Difficulty == 0 )
-		return( 0 );	// Too easy to be bad. hehe
-
-	// You should only be able to go down to -1000 karma by stealing.
-	if ( CheckCrimeSeen( SKILL_STEALING, pCharMark, pItem, (stage == SKTRIG_FAIL)? g_Cfg.GetDefaultMsg( DEFMSG_STEALING_YOUR ) : g_Cfg.GetDefaultMsg( DEFMSG_STEALING_SOMEONE ) ))
-		Noto_Karma( -100, -1000, true );
-
-	return( 0 );
-}
-
 void CChar::CallGuards()
 {
 	ADDTOCALLSTACK("CChar::CallGuards");
@@ -1633,14 +1482,14 @@ struct CArmorLayerType
 
 static const CArmorLayerType sm_ArmorLayers[ARMOR_QTY] =
 {
-	{ 15,	sm_ArmorLayerHead },	// ARMOR_HEAD
-	{ 7,	sm_ArmorLayerNeck },	// ARMOR_NECK
-	{ 0,	sm_ArmorLayerBack },	// ARMOR_BACK
-	{ 35,	sm_ArmorLayerChest },	// ARMOR_CHEST
-	{ 14,	sm_ArmorLayerArms },	// ARMOR_ARMS
-	{ 7,	sm_ArmorLayerHands },	// ARMOR_HANDS
-	{ 22,	sm_ArmorLayerLegs },	// ARMOR_LEGS
-	{ 0,	sm_ArmorLayerFeet }		// ARMOR_FEET
+	{ 10,	sm_ArmorLayerHead },	// ARMOR_HEAD
+	{ 5,	sm_ArmorLayerNeck },	// ARMOR_NECK
+	{ 10,	sm_ArmorLayerBack },	// ARMOR_BACK
+	{ 30,	sm_ArmorLayerChest },	// ARMOR_CHEST
+	{ 10,	sm_ArmorLayerArms },	// ARMOR_ARMS
+	{ 10,	sm_ArmorLayerHands },	// ARMOR_HANDS
+	{ 20,	sm_ArmorLayerLegs },	// ARMOR_LEGS
+	{ 5,	sm_ArmorLayerFeet }		// ARMOR_FEET
 };
 
 // When armor is added or subtracted check this.
@@ -1760,13 +1609,9 @@ WORD CChar::CalcArmorDefense() const
 				}
 				break;
 			case LAYER_HAND2:
-				if ( pItem->IsType(IT_SHIELD) )
+				if (pItem->IsType(IT_SHIELD))
 				{
-					if (IsSetCombatFlags(COMBAT_STACKARMOR))
-						iDefenseShield = iDefense;
-						// ArmorRegionMax[ARMOR_HANDS] += iDefense;
-					else
-						ArmorRegionMax[ARMOR_HANDS] = maximum(ArmorRegionMax[ARMOR_HANDS], iDefense);
+					iDefenseTotal += iDefense * (Skill_GetAdjusted(SKILL_PARRYING) / 10);
 				}
 				break;
 			case LAYER_SPELL_Protection:
@@ -1784,7 +1629,7 @@ WORD CChar::CalcArmorDefense() const
 			iDefenseTotal += sm_ArmorLayers[i].m_wCoverage * ArmorRegionMax[i];
 	}
 	
-	return (iDefenseTotal / 100) + iDefenseShield + m_ModAr;
+	return (iDefenseTotal / 100) + m_ModAr;
 }
 
 // Someone hit us.
@@ -1810,16 +1655,16 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 	if ( pSrc == NULL )
 		pSrc = this;
 
-	if ( IsStatFlag(STATF_DEAD) )	// already dead
+	if ( IsStatFlag(STATF_DEAD) )
 		return( -1 );
 
 	if ( !(uType & DAMAGE_GOD) )
 	{
 		if ( IsStatFlag(STATF_INVUL|STATF_Stone) )
 		{
-effect_bounce:
+			effect_bounce:
 			Effect( EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16 );
-			return( 0 );
+			return false;
 		}
 		if ( (uType & DAMAGE_FIRE) && Can(CAN_C_FIRE_IMMUNE) )
 			goto effect_bounce;
@@ -1862,41 +1707,75 @@ effect_bounce:
 	if ( (uType & DAMAGE_MAGIC) && IsSetMagicFlags(MAGICF_IGNOREAR) )
 		uType |= DAMAGE_FIXED;
 
+	// Start setting the args for @GetHit right here.
+	CScriptTriggerArgs Args(iDmg, uType, static_cast<INT64>(0));
+
 	// Apply armor calculation
 	if ( !(uType & (DAMAGE_GOD|DAMAGE_FIXED)) )
 	{
-		if ( IsSetCombatFlags(COMBAT_ELEMENTAL_ENGINE) )
+		// Where was the hit ?
+		// Determine area of body hit
+		int iHitRoll = Calc_GetRandVal(100); 
+		BODYPART_TYPE iHitArea = ARMOR_HEAD;
+		while (iHitArea<ARMOR_QTY - 1)
 		{
-			// AOS elemental combat
-			if ( iDmgPhysical == 0 )		// if physical damage is not set, let's assume it as the remaining value
-				iDmgPhysical = 100 - (iDmgFire + iDmgCold + iDmgPoison + iDmgEnergy);
-
-			int iPhysicalDamage = iDmg * iDmgPhysical * (100 - static_cast<int>(GetDefNum("RESPHYSICAL")));
-			int iFireDamage = iDmg * iDmgFire * (100 - static_cast<int>(GetDefNum("RESFIRE")));
-			int iColdDamage = iDmg * iDmgCold * (100 - static_cast<int>(GetDefNum("RESCOLD")));
-			int iPoisonDamage = iDmg * iDmgPoison * (100 - static_cast<int>(GetDefNum("RESPOISON")));
-			int iEnergyDamage = iDmg * iDmgEnergy * (100 - static_cast<int>(GetDefNum("RESENERGY")));
-
-			iDmg = (iPhysicalDamage + iFireDamage + iColdDamage + iPoisonDamage + iEnergyDamage) / 10000;
+			iHitRoll -= sm_ArmorLayers[iHitArea].m_wCoverage;
+			if (iHitRoll < 0)
+				break;
+			iHitArea = (BODYPART_TYPE)(iHitArea + 1);
 		}
-		else
+
+		int iMaxCoverage = 0;	// coverage at the hit zone.
+
+		CItem * pArmorNext;
+		for (CItem * pArmor = GetContentHead(); pArmor != NULL; pArmor = pArmorNext)
 		{
-			// pre-AOS armor rating (AR)
-			int iArmorRating = pCharDef->m_defense + m_defense;
-			int iDef = Calc_GetRandVal2(0, iArmorRating);
+			pArmorNext = pArmor->GetNext();
 
-			if ( uType & DAMAGE_MAGIC )		// magical damage halves effectiveness of defense
-				iDef /= 2;
+			// Look for protection bonus
+			if (pArmor->IsType(IT_SPELL) && pArmor->m_itSpell.m_spell)
+			{
+				SPELL_TYPE spell = (SPELL_TYPE)RES_GET_INDEX(pArmor->m_itSpell.m_spell);
+				switch (spell)
+				{
+				case SPELL_Steelskin:
+				case SPELL_Stoneskin:		
+				case SPELL_Arch_Prot:
+				case SPELL_Protection:
+					iMaxCoverage = max(iMaxCoverage, g_Cfg.GetSpellEffect(spell, pArmor->m_itSpell.m_spelllevel));
+					continue;
+				}
+			}
 
-			iDmg -= iDef;
+			// If we can see the layer?
+			LAYER_TYPE layer = pArmor->GetEquipLayer();
+			if (!CItemBase::IsVisibleLayer(layer))
+				continue;
+
+			const CArmorLayerType * pArmorLayer = &sm_ArmorLayers[iHitArea];
+			for (int i = 0; pArmorLayer->m_pLayers[i] != LAYER_NONE; i++) // layers covering the armor zone.
+			{
+				if (pArmorLayer->m_pLayers[i] == layer)
+				{
+					// This piece of armor takes damage.
+					iMaxCoverage = max(iMaxCoverage, pArmor->Armor_GetDefense());
+					
+					// LOCAL.ItemDamageLayer & LOCAL.ItemDamageChance for @GetHit
+					Args.m_VarsLocal.SetNum("ItemDamageLayer", pArmor->GetEquipLayer());
+					Args.m_VarsLocal.SetNum("ItemDamageChance", 2);
+					break;
+				}
+			}
 		}
+
+		// Apply defense from that armor zone.
+		iDmg -= Calc_GetRandVal(iMaxCoverage);
 	}
 
-	CScriptTriggerArgs Args( iDmg, uType, static_cast<INT64>(0) );
+	
 	if ( !(uType & DAMAGE_POISON) )
 	{
-		Args.m_VarsLocal.SetNum("ItemDamageLayer", sm_ArmorDamageLayers[Calc_GetRandVal(COUNTOF(sm_ArmorDamageLayers))]);
-		Args.m_VarsLocal.SetNum("ItemDamageChance", 2);
+		
 	}
 
 	if ( IsTrigUsed(TRIGGER_GETHIT) )
@@ -3128,8 +3007,8 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			if (Dex < 80)
 				ParryChance = ParryChance * (20 + Dex) / 100;
 
-			if ( Calc_GetRandVal2(0, 100) < ParryChance)
-				iParried = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 25;
+			if ( Calc_GetRandVal(100) < ParryChance)
+				iParried = pItemHit->Armor_GetDefense() / 2;
 		}
 	}
 
@@ -3180,11 +3059,16 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		// Check if I parried (source or scripted)
 		if ( iParried )
 		{
-			iDmg -= iDmg * static_cast<int>(Args.m_VarsLocal.GetKeyNum("ParryingReduction")) / 100;
+			iDmg -= iParried;
 			pCharTarg->Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16);
 			pCharTarg->Skill_Experience(SKILL_PARRYING, iParried);
-			pCharTarg->SysMessage("Bloqueas el golpe parcialmente.");
-			SysMessageDefault(DEFMSG_COMBAT_PARRY);
+		
+			// Send messages if they want.
+			if (pCharTarg->IsPriv(PRIV_DETAIL))
+				pCharTarg->SysMessage("Bloqueas el golpe parcialmente.");
+
+			if (IsPriv(PRIV_DETAIL))
+				SysMessageDefault(DEFMSG_COMBAT_PARRY);
 			
 			if ( Calc_GetRandVal(100) >= 60 && pCharTarg->LayerFind(LAYER_HAND2) )	
 				pCharTarg->LayerFind(LAYER_HAND2)->OnTakeDamage(1, this, iTyp);

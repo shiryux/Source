@@ -3896,7 +3896,6 @@ bool CChar::Skill_Start( SKILL_TYPE skill )
 
 	if (Skill_GetActive() != SKILL_NONE)
 	{
-		g_Log.EventError("SkillStart :: Skill active?\n");
 		Skill_Fail(true);		// fail previous skill unfinished. (with NO skill gain!)
 	}
 
