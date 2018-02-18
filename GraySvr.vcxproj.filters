@@ -34,8 +34,11 @@
     <Filter Include="tables">
       <UniqueIdentifier>{b459b1a6-1618-4776-a2ef-a312167c3bbb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Crafting">
+    <Filter Include="graysvr\Crafting">
       <UniqueIdentifier>{6402e0c2-2b8c-4903-b098-dab51a7b46fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graysvr\Skills">
+      <UniqueIdentifier>{6b387286-d557-4e64-a6aa-0f7bbb51d9ae}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -370,13 +373,16 @@
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="src\graysvr\Crafting\BaseCraft.cpp">
-      <Filter>Crafting</Filter>
+      <Filter>graysvr\Crafting</Filter>
     </ClCompile>
     <ClCompile Include="src\graysvr\Crafting\Blacksmithing.cpp">
-      <Filter>Crafting</Filter>
+      <Filter>graysvr\Crafting</Filter>
     </ClCompile>
     <ClCompile Include="src\graysvr\Crafting\Inscription.cpp">
-      <Filter>Crafting</Filter>
+      <Filter>graysvr\Crafting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graysvr\Skills\Stealing.cpp">
+      <Filter>graysvr\Skills</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

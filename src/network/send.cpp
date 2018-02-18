@@ -171,7 +171,7 @@ PacketHealthBarInfo::PacketHealthBarInfo(const CClient *target, CObjBase *object
 		if ( IsSetCombatFlags(COMBAT_ELEMENTAL_ENGINE) )
 			writeInt16(static_cast<WORD>(object->GetDefNum("RESPHYSICAL", true)));
 		else
-			writeInt16(objectChar->m_defense + objectCharDef->m_defense);
+			writeInt16(objectChar->CalcArmorDefense());
 
 		writeInt16(static_cast<WORD>(objectChar->GetTotalWeight() / WEIGHT_UNITS));
 

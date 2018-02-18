@@ -180,6 +180,7 @@ if defined GitRev (
     <ClCompile Include="src\graysvr\Crafting\BaseCraft.cpp" />
     <ClCompile Include="src\graysvr\Crafting\Blacksmithing.cpp" />
     <ClCompile Include="src\graysvr\Crafting\Inscription.cpp" />
+    <ClCompile Include="src\graysvr\Skills\Stealing.cpp" />
     <ClCompile Include="src\network\network.cpp" />
     <ClCompile Include="src\network\packet.cpp" />
     <ClCompile Include="src\network\receive.cpp" />
