@@ -1706,10 +1706,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 	// MAGICF_IGNOREAR bypasses defense completely
 	if ( (uType & DAMAGE_MAGIC) && IsSetMagicFlags(MAGICF_IGNOREAR) )
 		uType |= DAMAGE_FIXED;
-
-	// Start setting the args for @GetHit right here.
-	CScriptTriggerArgs Args(iDmg, uType, static_cast<INT64>(0));
-
+	
 	// Apply armor calculation
 	if ( !(uType & (DAMAGE_GOD|DAMAGE_FIXED)) )
 	{
@@ -1758,18 +1755,14 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 				if (pArmorLayer->m_pLayers[i] == layer)
 				{
 					// This piece of armor takes damage.
-					iMaxCoverage = max(iMaxCoverage, pArmor->Armor_GetDefense());
-					
-					// LOCAL.ItemDamageLayer & LOCAL.ItemDamageChance for @GetHit
-					Args.m_VarsLocal.SetNum("ItemDamageLayer", pArmor->GetEquipLayer());
-					Args.m_VarsLocal.SetNum("ItemDamageChance", 2);
+					iMaxCoverage = max(iMaxCoverage, (pArmor->Armor_GetDefense() * pArmorLayer->m_wCoverage) / 100);
 					break;
 				}
 			}
 		}
 
 		// Apply defense from that armor zone.
-		iDmg -= Calc_GetRandVal(iMaxCoverage);
+		iDmg -= Calc_GetRandVal2(iMaxCoverage / 2, iMaxCoverage);
 	}
 
 	
@@ -1778,6 +1771,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		
 	}
 
+	CScriptTriggerArgs Args(iDmg, uType, static_cast<INT64>(0));
 	if ( IsTrigUsed(TRIGGER_GETHIT) )
 	{
 		if ( OnTrigger( CTRIG_GetHit, pSrc, &Args ) == TRIGRET_RET_TRUE )
@@ -1786,6 +1780,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		uType = static_cast<DAMAGE_TYPE>(Args.m_iN2);
 	}
 
+	/*
 	int iItemDamageChance = static_cast<int>(Args.m_VarsLocal.GetKeyNum("ItemDamageChance"));
 	LAYER_TYPE iItemDamageLayer = static_cast<LAYER_TYPE>(Args.m_VarsLocal.GetKeyNum("ItemDamageLayer"));
 	if ( iItemDamageLayer && (iItemDamageChance > Calc_GetRandVal(100)) && !pCharDef->Can(CAN_C_NONHUMANOID) )
@@ -1794,6 +1789,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		if ( pItemHit )
 			pItemHit->OnTakeDamage(iDmg, pSrc, uType);
 	}
+	*/
 
 	// Remove stuck/paralyze effect
 	if ( !(uType & DAMAGE_NOUNPARALYZE) )
