@@ -1467,12 +1467,12 @@ static const LAYER_TYPE sm_ArmorDamageLayers[] = { LAYER_SHOES, LAYER_PANTS, LAY
 // Layers covering the armor zone
 static const LAYER_TYPE sm_ArmorLayerHead[] = { LAYER_HELM };															// ARMOR_HEAD
 static const LAYER_TYPE sm_ArmorLayerNeck[] = { LAYER_COLLAR };															// ARMOR_NECK
-static const LAYER_TYPE sm_ArmorLayerBack[] = { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_CAPE, LAYER_ROBE };		// ARMOR_BACK
-static const LAYER_TYPE sm_ArmorLayerChest[] = { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_ROBE };					// ARMOR_CHEST
+static const LAYER_TYPE sm_ArmorLayerChest[] = { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_CAPE, LAYER_ROBE };					// ARMOR_CHEST
 static const LAYER_TYPE sm_ArmorLayerArms[] = { LAYER_ARMS, LAYER_CAPE, LAYER_ROBE };									// ARMOR_ARMS
 static const LAYER_TYPE sm_ArmorLayerHands[] = { LAYER_GLOVES };														// ARMOR_HANDS
-static const LAYER_TYPE sm_ArmorLayerLegs[] = { LAYER_PANTS, LAYER_SKIRT, LAYER_HALF_APRON, LAYER_ROBE, LAYER_LEGS };	// ARMOR_LEGS
-static const LAYER_TYPE sm_ArmorLayerFeet[] = { LAYER_SHOES, LAYER_LEGS };												// ARMOR_FEET
+static const LAYER_TYPE sm_ArmorLayerLegs[] = { LAYER_PANTS, LAYER_SKIRT, LAYER_HALF_APRON, LAYER_ROBE, LAYER_LEGS, LAYER_SHOES };	// ARMOR_LEGS
+//static const LAYER_TYPE sm_ArmorLayerBack[] = { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_CAPE, LAYER_ROBE };		// ARMOR_BACK
+//static const LAYER_TYPE sm_ArmorLayerFeet[] = { LAYER_SHOES, LAYER_LEGS };												// ARMOR_FEET
 
 struct CArmorLayerType
 {
@@ -1482,15 +1482,24 @@ struct CArmorLayerType
 
 static const CArmorLayerType sm_ArmorLayers[ARMOR_QTY] =
 {
-	{ 10,	sm_ArmorLayerHead },	// ARMOR_HEAD
-	{ 5,	sm_ArmorLayerNeck },	// ARMOR_NECK
-	{ 10,	sm_ArmorLayerBack },	// ARMOR_BACK
-	{ 30,	sm_ArmorLayerChest },	// ARMOR_CHEST
-	{ 10,	sm_ArmorLayerArms },	// ARMOR_ARMS
-	{ 10,	sm_ArmorLayerHands },	// ARMOR_HANDS
-	{ 20,	sm_ArmorLayerLegs },	// ARMOR_LEGS
-	{ 5,	sm_ArmorLayerFeet }		// ARMOR_FEET
+	{ 14,	sm_ArmorLayerHead },	// -ARMOR_HEAD
+	{ 7,	sm_ArmorLayerNeck },	// ARMOR_NECK
+	{ 44,	sm_ArmorLayerChest },	// -ARMOR_CHEST
+	{ 14,	sm_ArmorLayerArms },	// -ARMOR_ARMS
+	{ 7,	sm_ArmorLayerHands },	// ARMOR_HANDS
+	{ 14,	sm_ArmorLayerLegs },	// -ARMOR_LEGS
+	//	{ 10,	sm_ArmorLayerBack },	// ARMOR_BACK
+	//	{ 14,	sm_ArmorLayerFeet }		// ARMOR_FEET
 };
+
+/*
+Body	44%	Breastplates, Tunics, Dresses, Cloak, Shirts
+Arms	14%	Arm Plates, Chainmail Tunic, Sleeves
+Head	14%	Hats, Helmets
+Legs	14%	Leg Plates, Leggings, Pants, Skirts, Thigh Boots
+Neck	7%	Gorgets
+Hands	7%	Gauntlets, Gloves
+*/
 
 // When armor is added or subtracted check this.
 // This is the general AC number printed.
@@ -1707,9 +1716,17 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 	if ( (uType & DAMAGE_MAGIC) && IsSetMagicFlags(MAGICF_IGNOREAR) )
 		uType |= DAMAGE_FIXED;
 	
-	// Apply armor calculation
+	// Apply armor calculation	
 	if ( !(uType & (DAMAGE_GOD|DAMAGE_FIXED)) )
 	{
+		int iMaxCoverage = 0;	// coverage at the hit zone.
+
+		if ( !pCharDef->IsHumanID(pCharDef->GetID()) )
+		{
+			iMaxCoverage = Calc_GetRandVal2(pCharDef->m_defense / 2, pCharDef->m_defense);
+			goto ApplyDefense;
+		}
+
 		// Where was the hit ?
 		// Determine area of body hit
 		int iHitRoll = Calc_GetRandVal(100); 
@@ -1722,7 +1739,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 			iHitArea = (BODYPART_TYPE)(iHitArea + 1);
 		}
 
-		int iMaxCoverage = 0;	// coverage at the hit zone.
+		
 
 		CItem * pArmorNext;
 		for (CItem * pArmor = GetContentHead(); pArmor != NULL; pArmor = pArmorNext)
@@ -1755,14 +1772,15 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 				if (pArmorLayer->m_pLayers[i] == layer)
 				{
 					// This piece of armor takes damage.
-					iMaxCoverage = max(iMaxCoverage, (pArmor->Armor_GetDefense() * pArmorLayer->m_wCoverage) / 100);
+					iMaxCoverage = max(iMaxCoverage, (pArmor->Armor_GetDefense() * Calc_GetRandVal2(25,45)) / 100);
 					break;
 				}
 			}
 		}
 
 		// Apply defense from that armor zone.
-		iDmg -= Calc_GetRandVal2(iMaxCoverage / 2, iMaxCoverage);
+		ApplyDefense:
+		iDmg -= iMaxCoverage;
 	}
 
 	
