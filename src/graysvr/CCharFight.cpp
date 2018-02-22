@@ -2088,7 +2088,7 @@ int CChar::Fight_CalcDamage( const CItem * pWeapon, bool bNoRandom, bool bGetMax
 	int iDmgMin, iDmgMax = 0;
 	STAT_TYPE iStatBonus = static_cast<STAT_TYPE>(GetDefNum("COMBATBONUSSTAT"));
 	int iStatBonusPercent = static_cast<int>(GetDefNum("COMBATBONUSPERCENT"));
-	if ( pWeapon != NULL )
+	if ( pWeapon != NULL && !m_pNPC )
 	{
 		iDmgMin = pWeapon->Weapon_GetAttack(false);
 		iDmgMax = pWeapon->Weapon_GetAttack(true);
