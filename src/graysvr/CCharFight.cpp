@@ -1465,14 +1465,14 @@ bool CChar::OnAttackedBy( CChar * pCharSrc, int iHarmQty, bool fCommandPet, bool
 static const LAYER_TYPE sm_ArmorDamageLayers[] = { LAYER_SHOES, LAYER_PANTS, LAYER_SHIRT, LAYER_HELM, LAYER_GLOVES, LAYER_COLLAR, LAYER_HALF_APRON, LAYER_CHEST, LAYER_TUNIC, LAYER_ARMS, LAYER_CAPE, LAYER_ROBE, LAYER_SKIRT, LAYER_LEGS };
 
 // Layers covering the armor zone
-static const LAYER_TYPE sm_ArmorLayerHead[] = { LAYER_HELM };															// ARMOR_HEAD
-static const LAYER_TYPE sm_ArmorLayerNeck[] = { LAYER_COLLAR };															// ARMOR_NECK
-static const LAYER_TYPE sm_ArmorLayerChest[] = { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_CAPE, LAYER_ROBE };					// ARMOR_CHEST
-static const LAYER_TYPE sm_ArmorLayerArms[] = { LAYER_ARMS, LAYER_CAPE, LAYER_ROBE };									// ARMOR_ARMS
-static const LAYER_TYPE sm_ArmorLayerHands[] = { LAYER_GLOVES };														// ARMOR_HANDS
-static const LAYER_TYPE sm_ArmorLayerLegs[] = { LAYER_PANTS, LAYER_SKIRT, LAYER_HALF_APRON, LAYER_ROBE, LAYER_LEGS, LAYER_SHOES };	// ARMOR_LEGS
-//static const LAYER_TYPE sm_ArmorLayerBack[] = { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_CAPE, LAYER_ROBE };		// ARMOR_BACK
-//static const LAYER_TYPE sm_ArmorLayerFeet[] = { LAYER_SHOES, LAYER_LEGS };												// ARMOR_FEET
+static const LAYER_TYPE sm_ArmorLayerHead[]		= { LAYER_HELM };															// ARMOR_HEAD
+static const LAYER_TYPE sm_ArmorLayerNeck[]		= { LAYER_COLLAR };															// ARMOR_NECK
+static const LAYER_TYPE sm_ArmorLayerBack[]		= { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_CAPE, LAYER_ROBE };			// ARMOR_BACK
+static const LAYER_TYPE sm_ArmorLayerChest[]		= { LAYER_SHIRT, LAYER_CHEST, LAYER_TUNIC, LAYER_ROBE };						// ARMOR_CHEST
+static const LAYER_TYPE sm_ArmorLayerArms[]		= { LAYER_ARMS, LAYER_CAPE, LAYER_ROBE };									// ARMOR_ARMS
+static const LAYER_TYPE sm_ArmorLayerHands[]		= { LAYER_GLOVES };															// ARMOR_HANDS
+static const LAYER_TYPE sm_ArmorLayerLegs[]		= { LAYER_PANTS, LAYER_SKIRT, LAYER_HALF_APRON, LAYER_ROBE, LAYER_LEGS };	// ARMOR_LEGS
+static const LAYER_TYPE sm_ArmorLayerFeet[]		= { LAYER_SHOES, LAYER_LEGS };												// ARMOR_FEET
 
 struct CArmorLayerType
 {
@@ -1482,14 +1482,14 @@ struct CArmorLayerType
 
 static const CArmorLayerType sm_ArmorLayers[ARMOR_QTY] =
 {
-	{ 14,	sm_ArmorLayerHead },	// -ARMOR_HEAD
-	{ 7,	sm_ArmorLayerNeck },	// ARMOR_NECK
-	{ 44,	sm_ArmorLayerChest },	// -ARMOR_CHEST
-	{ 14,	sm_ArmorLayerArms },	// -ARMOR_ARMS
-	{ 7,	sm_ArmorLayerHands },	// ARMOR_HANDS
-	{ 14,	sm_ArmorLayerLegs },	// -ARMOR_LEGS
-	//	{ 10,	sm_ArmorLayerBack },	// ARMOR_BACK
-	//	{ 14,	sm_ArmorLayerFeet }		// ARMOR_FEET
+	{ 15,	sm_ArmorLayerHead },		// ARMOR_HEAD
+	{ 7,		sm_ArmorLayerNeck },		// ARMOR_NECK
+	{ 0,		sm_ArmorLayerBack },		// ARMOR_BACK
+	{ 35,	sm_ArmorLayerChest },	// ARMOR_CHEST
+	{ 14,	sm_ArmorLayerArms },		// ARMOR_ARMS
+	{ 7,		sm_ArmorLayerHands },	// ARMOR_HANDS
+	{ 22,	sm_ArmorLayerLegs },		// ARMOR_LEGS
+	{ 0,		sm_ArmorLayerFeet }		// ARMOR_FEET
 };
 
 /*
@@ -3116,11 +3116,11 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	if ( pWeapon )
 	{
 		// Check if the weapon is poisoned
-		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && pWeapon->m_itWeapon.m_poison_skill )
+		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && pWeapon->m_itWeapon.m_poison_skill && !pCharTarg->LayerFind(LAYER_FLAG_Poison) )
 		{
 			if ( Skill_CheckSuccess(SKILL_POISONING, pWeapon->m_itWeapon.m_poison_skill, false) )
 			{
-				BYTE iPoisonDeliver = static_cast<BYTE>(Calc_GetRandVal(pWeapon->m_itWeapon.m_poison_skill));
+				BYTE iPoisonDeliver = static_cast<BYTE>(Calc_GetRandVal2(pWeapon->m_itWeapon.m_poison_skill / 2, pWeapon->m_itWeapon.m_poison_skill));
 				pCharTarg->SetPoison(((iPoisonDeliver * 10) + Skill_GetBase(SKILL_POISONING)) / 2, Skill_GetBase(SKILL_POISONING) / 66, this);
 				pWeapon->m_itWeapon.m_poison_skill -= iPoisonDeliver / 5;	// reduce weapon poison charges
 				pWeapon->UpdatePropertyFlag(AUTOTOOLTIP_FLAG_POISON);
@@ -3136,12 +3136,12 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	{
 		// Base poisoning for NPCs
 		int iPoisoningSkill = Skill_GetBase(SKILL_POISONING);
-		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && iPoisoningSkill )
+		if ( !IsSetCombatFlags(COMBAT_NOPOISONHIT) && iPoisoningSkill && !pCharTarg->LayerFind(LAYER_FLAG_Poison) )
 		{
 			if (Skill_CheckSuccess(SKILL_POISONING, pCharTarg->Skill_GetBase(SKILL_POISONING), true))
 			{
-				if (m_TagDefs.GetKeyNum("HITPOISON"))
-					iPoisoningSkill = m_TagDefs.GetKeyNum("HITPOISON") * 200;
+				if (m_TagDefs.GetKeyNum("HitPoison"))
+					iPoisoningSkill = m_TagDefs.GetKeyNum("HitPoison") * 200;
 				pCharTarg->SetPoison(iPoisoningSkill, iPoisoningSkill / 66, this);
 			}
 		}

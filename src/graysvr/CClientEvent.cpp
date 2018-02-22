@@ -1185,13 +1185,14 @@ void CClient::Event_VendorSell(CChar *pVendor, const VendorItem *items, size_t i
 				continue;
 		}
 
-		// Can vendor afford this ?
+		/* Can vendor afford this ?
 		if ( lPrice > pBank->m_itEqBankBox.m_Check_Amount )
 		{
 			bShortfall = true;
 			break;
 		}
 		pBank->m_itEqBankBox.m_Check_Amount -= lPrice;
+		*/
 
 		// give them the appropriate amount of gold.
 		iGold += lPrice;
