@@ -1047,7 +1047,7 @@ bool CResource::r_LoadVal( CScript &s )
 			m_iMurderDecayTime = s.GetArgVal() * TICK_PER_SEC;
 			break;
 		case RC_NOTOTIMEOUT:
-			m_iNotoTimeout = s.GetArgVal() * TICK_PER_SEC;
+			m_iNotoTimeout = s.GetArgVal();
 			break;
 		case RC_WOOLGROWTHTIME:
 			m_iWoolGrowthTime = s.GetArgVal() * 60 * TICK_PER_SEC;
@@ -1551,7 +1551,7 @@ bool CResource::r_WriteVal( LPCTSTR pszKey, CGString & sVal, CTextConsole * pSrc
 			sVal.FormatVal( m_iMapCacheTime / TICK_PER_SEC );
 			break;
 		case RC_NOTOTIMEOUT:
-			sVal.FormatVal(m_iNotoTimeout / TICK_PER_SEC);
+			sVal.FormatVal(m_iNotoTimeout);
 			break;
 		case RC_MAXFAME:
 			sVal.FormatVal( m_iMaxFame );

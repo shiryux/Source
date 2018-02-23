@@ -6,76 +6,76 @@
 // Get my guild stone for my guild. even if i'm just a STONEPRIV_CANDIDATE ?
 // ARGS:
 //  MemType == MEMORY_GUILD or MEMORY_TOWN
-CItemStone * CChar::Guild_Find( MEMORY_TYPE MemType ) const
+CItemStone * CChar::Guild_Find(MEMORY_TYPE MemType) const
 {
 	ADDTOCALLSTACK("CChar::Guild_Find");
-	if ( ! m_pPlayer )
-		return( NULL );
+	if (!m_pPlayer)
+		return(NULL);
 	CItemMemory * pMyGMem = Memory_FindTypes(static_cast<WORD>(MemType));
-	if ( ! pMyGMem )
-		return( NULL );
+	if (!pMyGMem)
+		return(NULL);
 	CItemStone * pMyStone = static_cast<CItemStone *>(pMyGMem->m_uidLink.ItemFind());
-	if ( pMyStone == NULL )
+	if (pMyStone == NULL)
 	{
 		// Some sort of mislink ! fix it.
 		const_cast <CChar*>(this)->Memory_ClearTypes(static_cast<WORD>(MemType)); 	// Make them forget they were ever in this guild....again!
-		return( NULL );
+		return(NULL);
 	}
-	return( pMyStone );
+	return(pMyStone);
 }
 
 // Get my member record for my guild.
-CStoneMember * CChar::Guild_FindMember( MEMORY_TYPE MemType ) const
+CStoneMember * CChar::Guild_FindMember(MEMORY_TYPE MemType) const
 {
 	ADDTOCALLSTACK("CChar::Guild_FindMember");
 	CItemStone * pMyStone = Guild_Find(MemType);
-	if ( pMyStone == NULL )
-		return( NULL );
-	CStoneMember * pMember = pMyStone->GetMember( this );
-	if ( pMember == NULL )
+	if (pMyStone == NULL)
+		return(NULL);
+	CStoneMember * pMember = pMyStone->GetMember(this);
+	if (pMember == NULL)
 	{
 		// Some sort of mislink ! fix it.
 		const_cast <CChar*>(this)->Memory_ClearTypes(static_cast<WORD>(MemType)); 	// Make them forget they were ever in this guild....again!
-		return( NULL );
+		return(NULL);
 	}
-	return( pMember );
+	return(pMember);
 }
 
 // Resign me from my guild
-void CChar::Guild_Resign( MEMORY_TYPE MemType )
+void CChar::Guild_Resign(MEMORY_TYPE MemType)
 {
 	ADDTOCALLSTACK("CChar::Guild_Resign");
 	CStoneMember * pMember = Guild_FindMember(MemType);
-	if ( pMember )
+	if (pMember)
 		delete pMember;
 }
 
 // Get my guild abbrev if i have chosen to turn it on.
-LPCTSTR CChar::Guild_Abbrev( MEMORY_TYPE MemType ) const
+LPCTSTR CChar::Guild_Abbrev(MEMORY_TYPE MemType) const
 {
 	ADDTOCALLSTACK("CChar::Guild_Abbrev");
 	CStoneMember * pMember = Guild_FindMember(MemType);
-	if ( pMember == NULL )
-		return( NULL );
-	if ( ! pMember->IsAbbrevOn())
-		return( NULL );
+	if (pMember == NULL)
+		return(NULL);
+	if (!pMember->IsAbbrevOn())
+		return(NULL);
 	CItemStone * pMyStone = pMember->GetParentStone();
-	if ( pMyStone == NULL ||
-		! pMyStone->GetAbbrev()[0] )
-		return( NULL );
-	return( pMyStone->GetAbbrev());
+	if (pMyStone == NULL ||
+		!pMyStone->GetAbbrev()[0])
+		return(NULL);
+	return(pMyStone->GetAbbrev());
 }
 
 // Get my [guild abbrev] if i have chosen to turn it on.
-LPCTSTR CChar::Guild_AbbrevBracket( MEMORY_TYPE MemType ) const
+LPCTSTR CChar::Guild_AbbrevBracket(MEMORY_TYPE MemType) const
 {
 	ADDTOCALLSTACK("CChar::Guild_AbbrevBracket");
 	LPCTSTR pszAbbrev = Guild_Abbrev(MemType);
-	if ( pszAbbrev == NULL )
-		return( NULL );
+	if (pszAbbrev == NULL)
+		return(NULL);
 	TCHAR * pszTemp = Str_GetTemp();
-	sprintf( pszTemp, " [%s]", pszAbbrev );
-	return( pszTemp );
+	sprintf(pszTemp, " [%s]", pszAbbrev);
+	return(pszTemp);
 }
 
 //*****************************************************************
@@ -91,98 +91,101 @@ bool CChar::Noto_IsMurderer() const
 bool CChar::Noto_IsEvil() const
 {
 	ADDTOCALLSTACK("CChar::Noto_IsEvil");
-	short iKarma = Stat_GetAdjusted(STAT_KARMA);
+	int iKarma = Stat_GetAdjusted(STAT_KARMA);
 
 	//	guarded areas could be both RED and BLUE ones.
-	if ( m_pArea && m_pArea->IsGuarded() && m_pArea->m_TagDefs.GetKeyNum("RED") )
+	if (m_pArea && m_pArea->IsGuarded() && m_pArea->m_TagDefs.GetKeyNum("RED"))
 	{
 		//	red zone is opposite to blue - murders are considered normal here
 		//	while people with 0 kills and good karma are considered bad here
-		if ( Noto_IsMurderer() )
+		if (Noto_IsMurderer())
 			return false;
 
-		if ( m_pPlayer )
+		if (m_pPlayer)
 			return (iKarma > g_Cfg.m_iPlayerKarmaEvil);
 
 		return (iKarma > 0);
 	}
 
-	if ( Noto_IsMurderer() )
+	if (Noto_IsMurderer())
 		return true;
 
-	if ( m_pPlayer )
+	if (m_pPlayer)
 		return (iKarma < g_Cfg.m_iPlayerKarmaEvil);
 
-	switch ( GetNPCBrain(false) )
+	switch (GetNPCBrain(false))
 	{
-		case NPCBRAIN_MONSTER:
-		case NPCBRAIN_DRAGON:
-			return (iKarma < 0);
-		case NPCBRAIN_BERSERK:
-			return true;
-		case NPCBRAIN_ANIMAL:
-			return (iKarma <= -800);
-		default:
-			return (iKarma < -3000);
+	case NPCBRAIN_MONSTER:
+	case NPCBRAIN_DRAGON:
+		return (iKarma < 0);
+	case NPCBRAIN_BERSERK:
+		return true;
+	case NPCBRAIN_ANIMAL:
+		return (iKarma <= -800);
+	default:
+		return (iKarma < -3000);
 	}
 }
 
 bool CChar::Noto_IsNeutral() const
 {
 	ADDTOCALLSTACK("CChar::Noto_IsNeutral");
-	short iKarma = Stat_GetAdjusted(STAT_KARMA);
-	if ( m_pPlayer )
+	int iKarma = Stat_GetAdjusted(STAT_KARMA);
+	if (m_pPlayer)
 		return (iKarma < g_Cfg.m_iPlayerKarmaNeutral);
 
-	switch ( GetNPCBrain(false) )
+	switch (GetNPCBrain(false))
 	{
-		case NPCBRAIN_MONSTER:
-		case NPCBRAIN_DRAGON:
-		case NPCBRAIN_BERSERK:
-			return (iKarma <= 0);
-		case NPCBRAIN_ANIMAL:
-			return (iKarma <= 100);
-		default:
-			return (iKarma < 0);
+	case NPCBRAIN_MONSTER:
+	case NPCBRAIN_DRAGON:
+	case NPCBRAIN_BERSERK:
+		return (iKarma <= 0);
+	case NPCBRAIN_ANIMAL:
+		return (iKarma <= 100);
+	default:
+		return (iKarma < 0);
 	}
 }
 
 NOTO_TYPE CChar::Noto_GetFlag(const CChar *pCharViewer, bool bAllowInvul, bool bGetColor) const
 {
 	ADDTOCALLSTACK("CChar::Noto_GetFlag");
-	if ( !pCharViewer )
+	if (!pCharViewer)
 		return NOTO_INVALID;
 
-	CChar *pThis = const_cast<CChar *>(this);
 	CChar *pTarget = const_cast<CChar *>(pCharViewer);
+	CChar *pSrc = const_cast<CChar *>(this);
+	if (g_Cfg.m_iPetsInheritNotoriety && m_pNPC && NPC_PetGetOwner())	// If I'm a pet and have owner I redirect noto to him.
+		pSrc = NPC_PetGetOwner();
+
+	if (pSrc->m_notoSaves.size())
+	{
+		int id = pSrc->NotoSave_GetID(pTarget);
+		if (id != -1)
+		{
+			NotoSaves refNoto = m_notoSaves.at(id);
+			return bGetColor ? refNoto.color : refNoto.value;
+		}
+	}
+
 	NOTO_TYPE iNoto = NOTO_INVALID;
 	NOTO_TYPE iColor = NOTO_INVALID;
 
-	if ( pThis->m_notoSaves.size() )
-	{
-		if ( g_Cfg.m_iPetsInheritNotoriety && pThis->m_pNPC && pThis->NPC_PetGetOwner() )	// If I'm a pet and have owner I redirect noto to him.
-			pThis = pThis->NPC_PetGetOwner();
-
-		int id = pThis->NotoSave_GetID(pTarget);
-		if ( id != -1 )
-			return pThis->NotoSave_GetValue(id, bGetColor);
-	}
-
-	if ( IsTrigUsed(TRIGGER_NOTOSEND) )
+	if (IsTrigUsed(TRIGGER_NOTOSEND))
 	{
 		CScriptTriggerArgs args;
-		pThis->OnTrigger(CTRIG_NotoSend, pTarget, &args);
+		pSrc->OnTrigger(CTRIG_NotoSend, pTarget, &args);
 		iNoto = static_cast<NOTO_TYPE>(args.m_iN1);
 		iColor = static_cast<NOTO_TYPE>(args.m_iN2);
-		if ( iNoto < NOTO_INVALID )
+		if (iNoto < NOTO_INVALID)
 			iNoto = NOTO_INVALID;
 	}
 
-	if ( iNoto == NOTO_INVALID )
-		iNoto = Noto_CalcFlag(pCharViewer, bAllowInvul);
-	if ( iColor == NOTO_INVALID )
+	if (iNoto == NOTO_INVALID)
+		iNoto = Noto_CalcFlag(pTarget, bAllowInvul);
+	if (iColor == NOTO_INVALID)
 		iColor = iNoto;
-	pThis->NotoSave_Add(pTarget, iNoto, iColor);
+	pSrc->NotoSave_Add(pTarget, iNoto, iColor);
 
 	return bGetColor ? iColor : iNoto;
 }
@@ -190,33 +193,33 @@ NOTO_TYPE CChar::Noto_GetFlag(const CChar *pCharViewer, bool bAllowInvul, bool b
 NOTO_TYPE CChar::Noto_CalcFlag(const CChar *pCharViewer, bool bAllowInvul) const
 {
 	ADDTOCALLSTACK("CChar::Noto_CalcFlag");
-	if ( !pCharViewer )
+	if (!pCharViewer)
 		return NOTO_INVALID;
 
 	NOTO_TYPE NotoFlag = static_cast<NOTO_TYPE>(m_TagDefs.GetKeyNum("OVERRIDE.NOTO"));
-	if ( NotoFlag != NOTO_INVALID )
+	if (NotoFlag != NOTO_INVALID)
 		return NotoFlag;
 
-	if ( IsStatFlag(STATF_Incognito) )
+	if (IsStatFlag(STATF_Incognito))
 		return NOTO_NEUTRAL;
 
-	if ( bAllowInvul && IsStatFlag(STATF_INVUL) )
+	if (bAllowInvul && IsStatFlag(STATF_INVUL))
 		return NOTO_INVUL;
 
-	if ( m_pArea && m_pArea->IsFlag(REGION_FLAG_ARENA) )	// everyone is neutral here
+	if (m_pArea && m_pArea->IsFlag(REGION_FLAG_ARENA))	// everyone is neutral here
 		return NOTO_NEUTRAL;
 
-	if ( pCharViewer != this )
+	if (pCharViewer != this)
 	{
 		// Do we have a master to inherit notoriety from?
-		if ( g_Cfg.m_iPetsInheritNotoriety != 0 )
+		if (g_Cfg.m_iPetsInheritNotoriety != 0)
 		{
 			CChar *pMaster = NPC_PetGetOwner();
-			if ( pMaster && pMaster != pCharViewer ) // master doesn't want to see their own status
+			if (pMaster && pMaster != pCharViewer) // master doesn't want to see their own status
 			{
 				// Protect against infinite loop
 				static int sm_iReentrant = 0;
-				if ( sm_iReentrant < 32 )
+				if (sm_iReentrant < 32)
 				{
 					// Get master's notoriety
 					++sm_iReentrant;
@@ -225,7 +228,7 @@ NOTO_TYPE CChar::Noto_CalcFlag(const CChar *pCharViewer, bool bAllowInvul) const
 
 					// Check if this notoriety is inheritable based on bitmask settings
 					int iNotoFlags = 1 << (NotoMaster - 1);
-					if ( (g_Cfg.m_iPetsInheritNotoriety & iNotoFlags) == iNotoFlags )
+					if ((g_Cfg.m_iPetsInheritNotoriety & iNotoFlags) == iNotoFlags)
 						return NotoMaster;
 				}
 				else
@@ -236,57 +239,57 @@ NOTO_TYPE CChar::Noto_CalcFlag(const CChar *pCharViewer, bool bAllowInvul) const
 			}
 		}
 
-		if ( m_pParty && (m_pParty == pCharViewer->m_pParty) )
+		if (m_pParty && (m_pParty == pCharViewer->m_pParty))
 		{
-			if ( m_pParty->GetLootFlag(this) )
+			if (m_pParty->GetLootFlag(this))
 				return NOTO_GUILD_SAME;
 		}
 	}
 
-	if ( Noto_IsEvil() )
+	if (Noto_IsEvil())
 		return NOTO_EVIL;
 
-	if ( pCharViewer != this )
+	if (pCharViewer != this)
 	{
-		if ( m_pPlayer )
+		if (m_pPlayer)
 		{
 			// Check the guild stuff
 			CItemStone *pMyGuild = Guild_Find(MEMORY_GUILD);
-			if ( pMyGuild )
+			if (pMyGuild)
 			{
 				CItemStone *pViewerGuild = pCharViewer->Guild_Find(MEMORY_GUILD);
-				if ( pViewerGuild )
+				if (pViewerGuild)
 				{
-					if ( (pViewerGuild == pMyGuild) || pMyGuild->IsAlliedWith(pViewerGuild) )
+					if ((pViewerGuild == pMyGuild) || pMyGuild->IsAlliedWith(pViewerGuild))
 						return NOTO_GUILD_SAME;
-					if ( pMyGuild->IsAtWarWith(pViewerGuild) )
+					if (pMyGuild->IsAtWarWith(pViewerGuild))
 						return NOTO_GUILD_WAR;
 				}
 			}
 
 			// Check the town stuff
 			CItemStone *pMyTown = Guild_Find(MEMORY_TOWN);
-			if ( pMyTown )
+			if (pMyTown)
 			{
 				CItemStone *pViewerTown = pCharViewer->Guild_Find(MEMORY_TOWN);
-				if ( pViewerTown )
+				if (pViewerTown)
 				{
-					if ( pMyTown->IsAtWarWith(pViewerTown) )
+					if (pMyTown->IsAtWarWith(pViewerTown))
 						return NOTO_GUILD_WAR;
 				}
 			}
 		}
 
 		// If they saw me commit a crime or I am their aggressor then criminal to just them
-		CItemMemory *pMemory = pCharViewer->Memory_FindObjTypes(this, MEMORY_SAWCRIME|MEMORY_AGGREIVED|MEMORY_HARMEDBY);
-		if ( pMemory )
+		CItemMemory *pMemory = pCharViewer->Memory_FindObjTypes(this, MEMORY_SAWCRIME | MEMORY_AGGREIVED | MEMORY_HARMEDBY);
+		if (pMemory)
 			return NOTO_CRIMINAL;
 	}
 
-	if ( IsStatFlag(STATF_Criminal) )	// criminal to everyone.
+	if (IsStatFlag(STATF_Criminal))	// criminal to everyone.
 		return NOTO_CRIMINAL;
 
-	if ( Noto_IsNeutral() )
+	if (Noto_IsNeutral())
 		return NOTO_NEUTRAL;
 
 	return NOTO_GOOD;
@@ -296,20 +299,20 @@ HUE_TYPE CChar::Noto_GetHue(const CChar *pCharViewer) const
 {
 	ADDTOCALLSTACK("CChar::Noto_GetHue");
 	CVarDefCont *sVal = GetKey("NAME.HUE", true);
-	if ( sVal )
+	if (sVal)
 		return static_cast<HUE_TYPE>(sVal->GetValNum());
 
 	NOTO_TYPE Noto = Noto_GetFlag(pCharViewer, true, true);
-	switch ( Noto )
+	switch (Noto)
 	{
-		case NOTO_GOOD:			return g_Cfg.m_iColorNotoGood;		// Blue
-		case NOTO_GUILD_SAME:	return g_Cfg.m_iColorNotoGuildSame;	// Green (same guild)
-		case NOTO_NEUTRAL:		return g_Cfg.m_iColorNotoNeutral;	// Grey (someone that can be attacked)
-		case NOTO_CRIMINAL:		return g_Cfg.m_iColorNotoCriminal;	// Grey (criminal)
-		case NOTO_GUILD_WAR:	return g_Cfg.m_iColorNotoGuildWar;	// Orange (enemy guild)
-		case NOTO_EVIL:			return g_Cfg.m_iColorNotoEvil;		// Red
-		case NOTO_INVUL:		return IsPriv(PRIV_GM) ? g_Cfg.m_iColorNotoInvulGameMaster : g_Cfg.m_iColorNotoInvul;	// Purple / Yellow
-		default:				return (Noto > NOTO_INVUL) ? static_cast<HUE_TYPE>(Noto) : g_Cfg.m_iColorNotoDefault;	// Grey
+	case NOTO_GOOD:			return g_Cfg.m_iColorNotoGood;		// Blue
+	case NOTO_GUILD_SAME:	return g_Cfg.m_iColorNotoGuildSame;	// Green (same guild)
+	case NOTO_NEUTRAL:		return g_Cfg.m_iColorNotoNeutral;	// Grey (someone that can be attacked)
+	case NOTO_CRIMINAL:		return g_Cfg.m_iColorNotoCriminal;	// Grey (criminal)
+	case NOTO_GUILD_WAR:	return g_Cfg.m_iColorNotoGuildWar;	// Orange (enemy guild)
+	case NOTO_EVIL:			return g_Cfg.m_iColorNotoEvil;		// Red
+	case NOTO_INVUL:		return IsPriv(PRIV_GM) ? g_Cfg.m_iColorNotoInvulGameMaster : g_Cfg.m_iColorNotoInvul;	// Purple / Yellow
+	default:				return (Noto > NOTO_INVUL) ? static_cast<HUE_TYPE>(Noto) : g_Cfg.m_iColorNotoDefault;	// Grey
 	}
 }
 
@@ -317,35 +320,35 @@ HUE_TYPE CChar::Noto_GetHue(const CChar *pCharViewer) const
 LPCTSTR CChar::Noto_GetFameTitle() const
 {
 	ADDTOCALLSTACK("CChar::Noto_GetFameTitle");
-	if ( IsStatFlag(STATF_Incognito|STATF_Polymorph) )
+	if (IsStatFlag(STATF_Incognito | STATF_Polymorph))
 		return "";
 
-	if ( !IsPriv(PRIV_PRIV_NOSHOW) )	// PRIVSHOW is on
+	if (!IsPriv(PRIV_PRIV_NOSHOW))	// PRIVSHOW is on
 	{
-		if ( IsPriv(PRIV_GM) )			// GM mode is on
+		if (IsPriv(PRIV_GM))			// GM mode is on
 		{
-			switch ( GetPrivLevel() )
+			switch (GetPrivLevel())
 			{
-				case PLEVEL_Owner:
-					return g_Cfg.GetDefaultMsg( DEFMSG_TITLE_OWNER );	//"Owner ";
-				case PLEVEL_Admin:
-					return g_Cfg.GetDefaultMsg( DEFMSG_TITLE_ADMIN );	//"Admin ";
-				case PLEVEL_Dev:
-					return g_Cfg.GetDefaultMsg( DEFMSG_TITLE_DEV );	//"Dev ";
-				case PLEVEL_GM:
-					return g_Cfg.GetDefaultMsg( DEFMSG_TITLE_GM );	//"GM ";
+			case PLEVEL_Owner:
+				return g_Cfg.GetDefaultMsg(DEFMSG_TITLE_OWNER);	//"Owner ";
+			case PLEVEL_Admin:
+				return g_Cfg.GetDefaultMsg(DEFMSG_TITLE_ADMIN);	//"Admin ";
+			case PLEVEL_Dev:
+				return g_Cfg.GetDefaultMsg(DEFMSG_TITLE_DEV);	//"Dev ";
+			case PLEVEL_GM:
+				return g_Cfg.GetDefaultMsg(DEFMSG_TITLE_GM);	//"GM ";
 			}
 		}
-		switch ( GetPrivLevel() )
+		switch (GetPrivLevel())
 		{
-			case PLEVEL_Seer:
-				return g_Cfg.GetDefaultMsg( DEFMSG_TITLE_SEER );	//"Seer ";
-			case PLEVEL_Counsel:
-				return g_Cfg.GetDefaultMsg( DEFMSG_TITLE_COUNSEL );	//"Counselor ";
+		case PLEVEL_Seer:
+			return g_Cfg.GetDefaultMsg(DEFMSG_TITLE_SEER);	//"Seer ";
+		case PLEVEL_Counsel:
+			return g_Cfg.GetDefaultMsg(DEFMSG_TITLE_COUNSEL);	//"Counselor ";
 		}
 	}
 
-	if ( (m_pPlayer || !g_Cfg.m_NPCNoFameTitle) && (Stat_GetAdjusted(STAT_FAME) >= 10000) )
+	if ((m_pPlayer || !g_Cfg.m_NPCNoFameTitle) && (Stat_GetAdjusted(STAT_FAME) >= 10000))
 		return g_Cfg.GetDefaultMsg(Char_GetDef()->IsFemale() ? DEFMSG_TITLE_LADY : DEFMSG_TITLE_LORD);	//"Lady " : "Lord "
 
 	return "";
@@ -357,29 +360,29 @@ int CChar::Noto_GetLevel() const
 
 	size_t i = 0;
 	int iKarma = Stat_GetAdjusted(STAT_KARMA);
-	for ( ; i < g_Cfg.m_NotoKarmaLevels.GetCount() && iKarma < g_Cfg.m_NotoKarmaLevels.GetAt(i); i++ )
+	for (; i < g_Cfg.m_NotoKarmaLevels.GetCount() && iKarma < g_Cfg.m_NotoKarmaLevels.GetAt(i); i++)
 		;
 
 	size_t j = 0;
 	int iFame = Stat_GetAdjusted(STAT_FAME);
-	for ( ; j < g_Cfg.m_NotoFameLevels.GetCount() && iFame > g_Cfg.m_NotoFameLevels.GetAt(j); j++ )
+	for (; j < g_Cfg.m_NotoFameLevels.GetCount() && iFame > g_Cfg.m_NotoFameLevels.GetAt(j); j++)
 		;
 
-	return( ( i * (g_Cfg.m_NotoFameLevels.GetCount() + 1) ) + j );
+	return((i * (g_Cfg.m_NotoFameLevels.GetCount() + 1)) + j);
 }
 
 LPCTSTR CChar::Noto_GetTitle() const
 {
 	ADDTOCALLSTACK("CChar::Noto_GetTitle");
 
-	LPCTSTR pTitle = Noto_IsMurderer() ? g_Cfg.GetDefaultMsg( DEFMSG_TITLE_MURDERER ) : ( IsStatFlag(STATF_Criminal) ? g_Cfg.GetDefaultMsg( DEFMSG_TITLE_CRIMINAL ) :  g_Cfg.GetNotoTitle(Noto_GetLevel(), Char_GetDef()->IsFemale()) );
+	LPCTSTR pTitle = Noto_IsMurderer() ? g_Cfg.GetDefaultMsg(DEFMSG_TITLE_MURDERER) : (IsStatFlag(STATF_Criminal) ? g_Cfg.GetDefaultMsg(DEFMSG_TITLE_CRIMINAL) : g_Cfg.GetNotoTitle(Noto_GetLevel(), Char_GetDef()->IsFemale()));
 	LPCTSTR pFameTitle = GetKeyStr("NAME.PREFIX");
-	if ( !*pFameTitle )
+	if (!*pFameTitle)
 		pFameTitle = Noto_GetFameTitle();
 
 	TCHAR * pTemp = Str_GetTemp();
-	sprintf( pTemp, "%s%s%s%s%s%s",
-		(pTitle[0]) ? ( Char_GetDef()->IsFemale() ? g_Cfg.GetDefaultMsg( DEFMSG_TITLE_ARTICLE_FEMALE ) : g_Cfg.GetDefaultMsg( DEFMSG_TITLE_ARTICLE_MALE ) )  : "",
+	sprintf(pTemp, "%s%s%s%s%s%s",
+		(pTitle[0]) ? (Char_GetDef()->IsFemale() ? g_Cfg.GetDefaultMsg(DEFMSG_TITLE_ARTICLE_FEMALE) : g_Cfg.GetDefaultMsg(DEFMSG_TITLE_ARTICLE_MALE)) : "",
 		pTitle,
 		(pTitle[0]) ? " " : "",
 		pFameTitle,
@@ -392,43 +395,43 @@ LPCTSTR CChar::Noto_GetTitle() const
 void CChar::Noto_Murder()
 {
 	ADDTOCALLSTACK("CChar::Noto_Murder");
-	if ( Noto_IsMurderer() )
+	if (Noto_IsMurderer())
 		SysMessageDefault(DEFMSG_MSG_MURDERER);
 
-	if ( m_pPlayer && m_pPlayer->m_wMurders )
+	if (m_pPlayer && m_pPlayer->m_wMurders)
 		Spell_Effect_Create(SPELL_NONE, LAYER_FLAG_Murders, 0, g_Cfg.m_iMurderDecayTime, NULL);
 }
 
-bool CChar::Noto_Criminal( CChar * pChar )
+bool CChar::Noto_Criminal(CChar * pChar)
 {
 	ADDTOCALLSTACK("CChar::Noto_Criminal");
-	if ( m_pNPC || IsPriv(PRIV_GM) )
+	if (m_pNPC || IsPriv(PRIV_GM))
 		return false;
 
 	int decay = g_Cfg.m_iCriminalTimer;
 
-	if ( IsTrigUsed(TRIGGER_CRIMINAL) )
+	if (IsTrigUsed(TRIGGER_CRIMINAL))
 	{
 		CScriptTriggerArgs Args;
 		Args.m_iN1 = decay;
 		Args.m_pO1 = pChar;
-		if ( OnTrigger(CTRIG_Criminal, this, &Args) == TRIGRET_RET_TRUE )
+		if (OnTrigger(CTRIG_Criminal, this, &Args) == TRIGRET_RET_TRUE)
 			return false;
 
 		decay = static_cast<int>(Args.m_iN1);
 	}
 
-	if ( !IsStatFlag(STATF_Criminal) )
+	if (!IsStatFlag(STATF_Criminal))
 		SysMessageDefault(DEFMSG_MSG_GUARDS);
 
 	Spell_Effect_Create(SPELL_NONE, LAYER_FLAG_Criminal, 0, decay);
 	return true;
 }
 
-void CChar::Noto_ChangeDeltaMsg( int iDelta, LPCTSTR pszType )
+void CChar::Noto_ChangeDeltaMsg(int iDelta, LPCTSTR pszType)
 {
 	ADDTOCALLSTACK("CChar::Noto_ChangeDeltaMsg");
-	if ( !iDelta )
+	if (!iDelta)
 		return;
 
 #define	NOTO_DEGREES	8
@@ -449,98 +452,98 @@ void CChar::Noto_ChangeDeltaMsg( int iDelta, LPCTSTR pszType )
 	int iDegree = minimum(abs(iDelta) / NOTO_FACTOR, 7);
 
 	TCHAR *pszMsg = Str_GetTemp();
-	sprintf( pszMsg, g_Cfg.GetDefaultMsg( DEFMSG_MSG_NOTO_CHANGE_0 ), 
-		( iDelta < 0 ) ? g_Cfg.GetDefaultMsg( DEFMSG_MSG_NOTO_CHANGE_LOST ) : g_Cfg.GetDefaultMsg( DEFMSG_MSG_NOTO_CHANGE_GAIN ),
-		 g_Cfg.GetDefaultMsg(sm_DegreeTable[iDegree]), pszType );
-	
-	SysMessage( pszMsg );
+	sprintf(pszMsg, g_Cfg.GetDefaultMsg(DEFMSG_MSG_NOTO_CHANGE_0),
+		(iDelta < 0) ? g_Cfg.GetDefaultMsg(DEFMSG_MSG_NOTO_CHANGE_LOST) : g_Cfg.GetDefaultMsg(DEFMSG_MSG_NOTO_CHANGE_GAIN),
+		g_Cfg.GetDefaultMsg(sm_DegreeTable[iDegree]), pszType);
+
+	SysMessage(pszMsg);
 }
 
-void CChar::Noto_ChangeNewMsg( int iPrvLevel )
+void CChar::Noto_ChangeNewMsg(int iPrvLevel)
 {
 	ADDTOCALLSTACK("CChar::Noto_ChangeNewMsg");
-	if ( iPrvLevel != Noto_GetLevel() )		// reached a new title level ?
+	if (iPrvLevel != Noto_GetLevel())		// reached a new title level ?
 		SysMessagef(g_Cfg.GetDefaultMsg(DEFMSG_MSG_NOTO_GETTITLE), Noto_GetTitle());
 }
 
-void CChar::Noto_Fame( int iFameChange )
+void CChar::Noto_Fame(int iFameChange)
 {
 	ADDTOCALLSTACK("CChar::Noto_Fame");
 
-	if ( ! iFameChange )
+	if (!iFameChange)
 		return;
 
 	int iFame = maximum(Stat_GetAdjusted(STAT_FAME), 0);
-	if ( iFameChange > 0 )
+	if (iFameChange > 0)
 	{
-		if ( iFame + iFameChange > g_Cfg.m_iMaxFame )
+		if (iFame + iFameChange > g_Cfg.m_iMaxFame)
 			iFameChange = g_Cfg.m_iMaxFame - iFame;
 	}
 	else
 	{
-		if ( iFame + iFameChange < 0 )
+		if (iFame + iFameChange < 0)
 			iFameChange = -iFame;
 	}
 
-	if ( IsTrigUsed(TRIGGER_FAMECHANGE) )
+	if (IsTrigUsed(TRIGGER_FAMECHANGE))
 	{
 		CScriptTriggerArgs Args(iFameChange);	// ARGN1 - Fame change modifier
 		TRIGRET_TYPE retType = OnTrigger(CTRIG_FameChange, this, &Args);
 
-		if ( retType == TRIGRET_RET_TRUE )
+		if (retType == TRIGRET_RET_TRUE)
 			return;
 		iFameChange = static_cast<int>(Args.m_iN1);
 	}
 
-	if ( ! iFameChange )
+	if (!iFameChange)
 		return;
 
 	iFame += iFameChange;
-	Noto_ChangeDeltaMsg( iFame - Stat_GetAdjusted(STAT_FAME), g_Cfg.GetDefaultMsg( DEFMSG_NOTO_FAME ) );
-	Stat_SetBase(STAT_FAME, static_cast<short>(iFame));
+	Noto_ChangeDeltaMsg(iFame - Stat_GetAdjusted(STAT_FAME), g_Cfg.GetDefaultMsg(DEFMSG_NOTO_FAME));
+	Stat_SetBase(STAT_FAME, iFame);
 }
 
-void CChar::Noto_Karma( int iKarmaChange, int iBottom, bool bMessage )
+void CChar::Noto_Karma(int iKarmaChange, int iBottom, bool bMessage)
 {
 	ADDTOCALLSTACK("CChar::Noto_Karma");
 
 	int	iKarma = Stat_GetAdjusted(STAT_KARMA);
-	iKarmaChange = g_Cfg.Calc_KarmaScale( iKarma, iKarmaChange );
+	iKarmaChange = g_Cfg.Calc_KarmaScale(iKarma, iKarmaChange);
 
-	if ( iKarmaChange > 0 )
+	if (iKarmaChange > 0)
 	{
-		if ( iKarma + iKarmaChange > g_Cfg.m_iMaxKarma )
+		if (iKarma + iKarmaChange > g_Cfg.m_iMaxKarma)
 			iKarmaChange = g_Cfg.m_iMaxKarma - iKarma;
 	}
 	else
 	{
 		if (iBottom == INT_MIN)
 			iBottom = g_Cfg.m_iMinKarma;
-		if ( iKarma + iKarmaChange < iBottom )
+		if (iKarma + iKarmaChange < iBottom)
 			iKarmaChange = iBottom - iKarma;
 	}
 
-	if ( IsTrigUsed(TRIGGER_KARMACHANGE) )
+	if (IsTrigUsed(TRIGGER_KARMACHANGE))
 	{
 		CScriptTriggerArgs Args(iKarmaChange);	// ARGN1 - Karma change modifier
 		TRIGRET_TYPE retType = OnTrigger(CTRIG_KarmaChange, this, &Args);
 
-		if ( retType == TRIGRET_RET_TRUE )
+		if (retType == TRIGRET_RET_TRUE)
 			return;
 		iKarmaChange = static_cast<int>(Args.m_iN1);
 	}
 
-	if ( ! iKarmaChange )
+	if (!iKarmaChange)
 		return;
 
 	iKarma += iKarmaChange;
-	Noto_ChangeDeltaMsg( iKarma - Stat_GetAdjusted(STAT_KARMA), g_Cfg.GetDefaultMsg( DEFMSG_NOTO_KARMA ) );
-	Stat_SetBase(STAT_KARMA, static_cast<short>(iKarma));
+	Noto_ChangeDeltaMsg(iKarma - Stat_GetAdjusted(STAT_KARMA), g_Cfg.GetDefaultMsg(DEFMSG_NOTO_KARMA));
+	Stat_SetBase(STAT_KARMA, iKarma);
 	NotoSave_Update();
-	if ( bMessage == true )
+	if (bMessage)
 	{
 		int iPrvLevel = Noto_GetLevel();
-		Noto_ChangeNewMsg( iPrvLevel );
+		Noto_ChangeNewMsg(iPrvLevel);
 	}
 }
 
@@ -550,7 +553,7 @@ void CChar::Noto_Kill(CChar * pKill, bool fPetKill, int iTotalKillers)
 {
 	ADDTOCALLSTACK("CChar::Noto_Kill");
 
-	if ( !pKill )
+	if (!pKill)
 		return;
 
 	// What was there noto to me ?
@@ -559,38 +562,38 @@ void CChar::Noto_Kill(CChar * pKill, bool fPetKill, int iTotalKillers)
 	// Fight is over now that i have won. (if i was fighting at all )
 	// ie. Magery cast might not be a "fight"
 	Attacker_Delete(pKill);
-	if ( pKill == this )
+	if (pKill == this)
 		return;
 
-	if ( m_pNPC )
+	if (m_pNPC)
 	{
-		if ( pKill->m_pNPC )
+		if (pKill->m_pNPC)
 		{
-			if ( m_pNPC->m_Brain == NPCBRAIN_GUARD )	// don't create corpse if NPC got killed by a guard
+			if (m_pNPC->m_Brain == NPCBRAIN_GUARD)	// don't create corpse if NPC got killed by a guard
 				pKill->StatFlag_Set(STATF_Conjured);
 			return;
 		}
 	}
-	else if ( NotoThem < NOTO_GUILD_SAME )
+	else if (NotoThem < NOTO_GUILD_SAME)
 	{
 		ASSERT(m_pPlayer);
 		// I'm a murderer !
-		if ( !IsPriv(PRIV_GM) )
+		if (!IsPriv(PRIV_GM))
 		{
 			CScriptTriggerArgs args;
-			args.m_iN1 = m_pPlayer->m_wMurders+1;
+			args.m_iN1 = m_pPlayer->m_wMurders + 1;
 			args.m_iN2 = true;
 
-			if ( IsTrigUsed(TRIGGER_MURDERMARK) )
+			if (IsTrigUsed(TRIGGER_MURDERMARK))
 			{
 				OnTrigger(CTRIG_MurderMark, this, &args);
-				if ( args.m_iN1 < 0 )
+				if (args.m_iN1 < 0)
 					args.m_iN1 = 0;
 			}
 
 			m_pPlayer->m_wMurders = static_cast<WORD>(args.m_iN1);
 			NotoSave_Update();
-			if ( args.m_iN2 )
+			if (args.m_iN2)
 				Noto_Criminal();
 
 			Noto_Murder();
@@ -598,36 +601,36 @@ void CChar::Noto_Kill(CChar * pKill, bool fPetKill, int iTotalKillers)
 	}
 
 	// No fame/karma/exp gain on these conditions
-	if ( fPetKill || NotoThem == NOTO_GUILD_SAME || pKill->IsStatFlag(STATF_Conjured) || (pKill->m_pNPC && pKill->m_pNPC->m_bonded) )
+	if (fPetKill || NotoThem == NOTO_GUILD_SAME || pKill->IsStatFlag(STATF_Conjured) || (pKill->m_pNPC && pKill->m_pNPC->m_bonded))
 		return;
 
 	int iPrvLevel = Noto_GetLevel();	// store title before fame/karma changes to check if it got changed
 	Noto_Fame(g_Cfg.Calc_FameKill(pKill) / iTotalKillers);
 	Noto_Karma(g_Cfg.Calc_KarmaKill(pKill, NotoThem) / iTotalKillers);
 
-	if ( g_Cfg.m_bExperienceSystem && (g_Cfg.m_iExperienceMode & EXP_MODE_RAISE_COMBAT) )
+	if (g_Cfg.m_bExperienceSystem && (g_Cfg.m_iExperienceMode & EXP_MODE_RAISE_COMBAT))
 	{
 		int change = (pKill->m_exp / 10) / iTotalKillers;
-		if ( change )
+		if (change)
 		{
-			if ( m_pPlayer && pKill->m_pPlayer )
+			if (m_pPlayer && pKill->m_pPlayer)
 				change = (change * g_Cfg.m_iExperienceKoefPVP) / 100;
 			else
 				change = (change * g_Cfg.m_iExperienceKoefPVM) / 100;
 		}
 
-		if ( change )
+		if (change)
 		{
 			//	bonuses of different experiences
-			if ( (m_exp * 4) < pKill->m_exp )		// 200%		[exp < 1/4 of killed]
+			if ((m_exp * 4) < pKill->m_exp)		// 200%		[exp < 1/4 of killed]
 				change *= 2;
-			else if ( (m_exp * 2) < pKill->m_exp )	// 150%		[exp < 1/2 of killed]
+			else if ((m_exp * 2) < pKill->m_exp)	// 150%		[exp < 1/2 of killed]
 				change = (change * 3) / 2;
-			else if ( m_exp <= pKill->m_exp )		// 100%		[exp <= killed]
+			else if (m_exp <= pKill->m_exp)		// 100%		[exp <= killed]
 				;
-			else if ( m_exp < (pKill->m_exp * 2) )	//  50%		[exp < 2 * killed]
+			else if (m_exp < (pKill->m_exp * 2))	//  50%		[exp < 2 * killed]
 				change /= 2;
-			else if ( m_exp < (pKill->m_exp * 3) )	//  25%		[exp < 3 * killed]
+			else if (m_exp < (pKill->m_exp * 3))	//  25%		[exp < 3 * killed]
 				change /= 4;
 			else									//  10%		[exp >= 3 * killed]
 				change /= 10;
@@ -639,74 +642,56 @@ void CChar::Noto_Kill(CChar * pKill, bool fPetKill, int iTotalKillers)
 	Noto_ChangeNewMsg(iPrvLevel);	// inform any title changes
 }
 
-int CChar::NotoSave() 
-{ 
-	ADDTOCALLSTACK("CChar::NotoSave");
-	return static_cast<int>(m_notoSaves.size());
-}
-void CChar::NotoSave_Add( CChar * pChar, NOTO_TYPE value, NOTO_TYPE color  )
+void CChar::NotoSave_Add(CChar *pChar, NOTO_TYPE value, NOTO_TYPE color)
 {
 	ADDTOCALLSTACK("CChar::NotoSave_Add");
-	if ( !pChar )
+	if (!pChar)
 		return;
-	CGrayUID uid = pChar->GetUID();
-	if  ( m_notoSaves.size() )	// Checking if I already have him in the list, only if there 's any list.
+	if (m_notoSaves.size())
 	{
 		for (std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it)
 		{
-			NotoSaves & refNoto = *it;
-			if ( refNoto.charUID == uid )
+			NotoSaves &refNoto = *it;
+			if (refNoto.charUID == pChar->GetUID())
 			{
-				// Found him, no actions needed so I forget about him...
-				// or should I update data ?
-
+				refNoto.elapsed = 0;
 				refNoto.value = value;
 				refNoto.color = color;
 				return;
 			}
 		}
 	}
-	NotoSaves refNoto;
-	refNoto.charUID = pChar->GetUID();
-	refNoto.time = 0;
-	refNoto.value = value;
-	refNoto.color = color;
-	m_notoSaves.push_back(refNoto);
+	NotoSaves refNew;
+	refNew.charUID = pChar->GetUID();
+	refNew.elapsed = 0;
+	refNew.value = value;
+	refNew.color = color;
+	m_notoSaves.push_back(refNew);
 }
 
-NOTO_TYPE CChar::NotoSave_GetValue( int id, bool bGetColor )
+void CChar::NotoSave_Delete(CChar *pChar)
 {
-	ADDTOCALLSTACK("CChar::NotoSave_GetValue");
-	if ( !m_notoSaves.size() )
-		return NOTO_INVALID;
-	if ( id < 0 )
-		return NOTO_INVALID;
-	if ( static_cast<int>(m_notoSaves.size()) <= id )
-		return NOTO_INVALID;
-	NotoSaves & refNotoSave = m_notoSaves.at(id);
-	if ( bGetColor && (refNotoSave.color > 0) )	// retrieving color if requested... only if a color is greater than 0 (to avoid possible crashes).
-		return refNotoSave.color;
-	else
-		return refNotoSave.value;
-}
-
-INT64 CChar::NotoSave_GetTime( int id )
-{
-	ADDTOCALLSTACK("CChar::NotoSave_GetTime");
-	if ( !m_notoSaves.size() )
-		return -1;
-	if ( id < 0 )
-		return NOTO_INVALID;
-	if ( static_cast<int>(m_notoSaves.size()) <= id )
-		return -1;
-	NotoSaves & refNotoSave = m_notoSaves.at(id);
-	return refNotoSave.time;
+	ADDTOCALLSTACK("CChar::NotoSave_Delete");
+	if (!pChar)
+		return;
+	if (m_notoSaves.size())
+	{
+		for (std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it)
+		{
+			NotoSaves &refNoto = *it;
+			if (refNoto.charUID == pChar->GetUID())
+			{
+				m_notoSaves.erase(it);
+				return;
+			}
+		}
+	}
 }
 
 void CChar::NotoSave_Clear()
 {
 	ADDTOCALLSTACK("CChar::NotoSave_Clear");
-	if ( m_notoSaves.size() )
+	if (m_notoSaves.size())
 		m_notoSaves.clear();
 }
 
@@ -717,88 +702,44 @@ void CChar::NotoSave_Update()
 	UpdateMode(NULL, true);
 }
 
-void CChar::NotoSave_CheckTimeout()
+int CChar::NotoSave_GetID(CChar *pChar)
 {
-	ADDTOCALLSTACK("CChar::NotoSave_CheckTimeout");
+	ADDTOCALLSTACK("CChar::NotoSave_GetID");
+	if (!pChar)
+		return -1;
 	if (m_notoSaves.size())
 	{
-		int count = 0;
+		int i = 0;
 		for (std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it)
 		{
-			NotoSaves & refNoto = *it;
-			if (++refNoto.time > g_Cfg.m_iNotoTimeout)	// updating timer while checking ini's value.
-			{
-				//m_notoSaves.erase(it);
-				NotoSave_Resend(count);
-				break;
-			}
-			count++;
-		}
-	}
-}
-
-void CChar::NotoSave_Resend( int id )
-{
-	ADDTOCALLSTACK("CChar::NotoSave_Resend()");
-	if ( !m_notoSaves.size() )
-		return;
-	if ( static_cast<int>(m_notoSaves.size()) <= id )
-		return;
-	NotoSaves & refNotoSave = m_notoSaves.at( id );
-	CGrayUID uid = refNotoSave.charUID;
-	CChar * pChar = uid.CharFind();
-	if ( ! pChar )
-		return;
-	NotoSave_Delete( pChar );
-	CObjBaseTemplate *pObj = pChar->GetTopLevelObj();
-	if ( GetDist(pObj) < UO_MAP_VIEW_SIGHT )
-		Noto_GetFlag(pChar, true);
-}
-
-int CChar::NotoSave_GetID( CChar * pChar )
-{
-	ADDTOCALLSTACK("CChar::NotoSave_GetID(CChar)");
-	if ( !pChar || !m_notoSaves.size() )
-		return -1;
-	if ( NotoSave() )
-	{
-		int count = 0;
-		for ( std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it )
-		{
-			NotoSaves & refNotoSave = m_notoSaves.at(count);
-			CGrayUID uid = refNotoSave.charUID;
-			if ( uid.CharFind() && uid == static_cast<DWORD>(pChar->GetUID()) )
-				return count;
-			count++;
+			NotoSaves &refNoto = *it;
+			if (refNoto.charUID == pChar->GetUID())
+				return i;
+			i++;
 		}
 	}
 	return -1;
 }
 
-bool CChar::NotoSave_Delete( CChar * pChar )
-{		
-	ADDTOCALLSTACK("CChar::NotoSave_Delete");
-	if ( ! pChar )
-		return false;
-	if ( NotoSave() )
+void CChar::NotoSave_CheckTimeout()
+{
+	ADDTOCALLSTACK("CChar::NotoSave_CheckTimeout");
+	if (m_notoSaves.size())
 	{
-		int count = 0;
-		for ( std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it )
+		for (std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it)
 		{
-			NotoSaves & refNotoSave = m_notoSaves.at(count);
-			CGrayUID uid = refNotoSave.charUID;
-			if ( uid.CharFind() && uid == static_cast<DWORD>(pChar->GetUID()) )
+			NotoSaves &refNoto = *it;
+			if (++refNoto.elapsed > g_Cfg.m_iNotoTimeout)
 			{
 				m_notoSaves.erase(it);
-				return true;
+				return;
 			}
-			count++;
 		}
 	}
-	return false;
 }
 
 //***************************************************************
+// Memory this char has about something in the world.
 // Memory this char has about something in the world.
 
 // Reset the check timer based on the type of memory.
@@ -1333,7 +1274,7 @@ void CChar::CallGuards( CChar * pCriminal )
 	else
 	{
 		// Search for a free guards nearby
-		CWorldSearch AreaGuard(GetTopPoint(), UO_MAP_VIEW_SIGHT);
+		CWorldSearch AreaGuard(GetTopPoint(), UO_MAP_VIEW_SIZE);
 		CChar *pGuardFound = NULL;
 		while ( (pGuardFound = AreaGuard.GetChar()) != NULL )
 		{
@@ -2792,7 +2733,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		return WAR_SWING_INVALID;
 
 	int iDist = GetTopDist3D(pCharTarg);
-	if ( iDist > UO_MAP_VIEW_SIZE )
+	if ( iDist > GetSight() )
 		return IsSetCombatFlags(COMBAT_STAYINRANGE) ? WAR_SWING_EQUIPPING : WAR_SWING_INVALID;
 
 	// I am on ship. Should be able to combat only inside the ship to avoid free sea and ground characters hunting

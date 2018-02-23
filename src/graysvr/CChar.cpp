@@ -1545,11 +1545,9 @@ do_default:
 					if ( !strnicmp(pszKey, "ID", 2 ) )
 					{
 						pszKey += 2;	// ID + whitspace
-						CChar * pChar = static_cast<CChar*>(static_cast<CGrayUID>(Exp_GetSingle(pszKey)).CharFind());
-						if ( !NotoSave_GetID(pChar) )
-							sVal.FormatVal( -1 );
-						else
-							sVal.FormatVal(NotoSave_GetID(pChar));
+						CChar *pChar = static_cast<CChar *>(static_cast<CGrayUID>(Exp_GetSingle(pszKey)).CharFind());
+						sVal.FormatVal(NotoSave_GetID(pChar));
+						
 						return true;
 					}
 					if ( m_notoSaves.size() )
@@ -1558,27 +1556,26 @@ do_default:
 						SKIP_SEPARATORS(pszKey);
 						if ( notoIndex < m_notoSaves.size() )
 						{
-							NotoSaves & refnoto = m_notoSaves.at(notoIndex);
-
-							if ( !strnicmp(pszKey, "VALUE", 5) )
+							NotoSaves refNoto = m_notoSaves.at(notoIndex);
+							
+							if ((!strnicmp(pszKey, "UID", 3)) || (*pszKey == '\0'))
 							{
-								sVal.FormatVal(refnoto.value);
+								sVal.FormatVal(refNoto.charUID);
 								return true;
 							}
 							else if ( !strnicmp(pszKey, "ELAPSED", 7) )
 							{
-								sVal.FormatVal(static_cast<long>(refnoto.time));
+								sVal.FormatLLVal(refNoto.elapsed);
 								return true;
 							}
-							else if (( !strnicmp(pszKey, "UID", 3) ) || ( *pszKey == '\0' ))
+							else if (!strnicmp(pszKey, "VALUE", 5))
 							{
-								CGrayUID uid = refnoto.charUID;
-								sVal.FormatHex( uid.CharFind() ? refnoto.charUID : 0 );
+								sVal.FormatVal(refNoto.value);
 								return true;
 							}
 							else if (!strnicmp(pszKey, "COLOR", 5))
 							{
-								sVal.FormatVal(refnoto.color);
+								sVal.FormatVal(refNoto.color);
 								return true;
 							}
 							return false;
