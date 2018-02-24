@@ -184,6 +184,7 @@ LPCTSTR const CSkillDef::sm_szTrigName[SKTRIG_QTY+1] =
 	"@TargetCancel",
 	"@UseQuick",
 	"@Wait",
+	"@CalcDiff",
 	NULL,
 };
 

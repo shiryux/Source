@@ -309,17 +309,17 @@ int CResource::Calc_StealingItem( CChar * pCharThief, CItem * pItem, CChar * pCh
 	int iSkillMark = pCharMark->Skill_GetAdjusted( SKILL_STEALING );
 	int iWeightItem = pItem->GetWeight();
 	
-	// int iDifficulty = iDexMark/2 + (iSkillMark/5) + Calc_GetRandVal(iDexMark/2) + IMULDIV( iWeightItem, 4, WEIGHT_UNITS );
-	// Melt mod:
-	int iDifficulty = (iSkillMark / 5) + Calc_GetRandVal(iDexMark / 2) + IMULDIV(iWeightItem, 4, WEIGHT_UNITS);
-	
-	if ( pItem->IsItemEquipped())
-		iDifficulty += iDexMark/2 + pCharMark->Stat_GetAdjusted(STAT_INT);		// This is REALLY HARD to do.
-	if ( pCharThief->IsStatFlag( STATF_War )) // all keyed up.
+	int iDifficulty = ((iSkillMark / 5) + Calc_GetRandVal(iDexMark / 2) + IMULDIV(iWeightItem, 4, WEIGHT_UNITS)) / 4;
+	g_Log.EventError("Stealing Diff 1 is %d\n", iDifficulty / 2);
+
+	CScriptTriggerArgs pArgs(iDifficulty);
+	if (pCharThief->Skill_OnTrigger(SKILL_STEALING, SKTRIG_USEQUICK, &pArgs))
+		iDifficulty += pArgs.m_iN1;
+
+	if ( pCharThief->IsStatFlag( STATF_War ))
 		iDifficulty += Calc_GetRandVal( iDexMark/2 );
 	
-	// return( iDifficulty );
-	// Melt mod:
+	g_Log.EventError("Stealing Diff is %d\n", iDifficulty / 2);
 	return( iDifficulty / 2 );
 }
 
