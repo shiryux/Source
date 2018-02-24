@@ -3183,6 +3183,32 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 	if (pSpellDef->IsSpellType(SPELLFLAG_BLESS) || pSpellDef->IsSpellType(SPELLFLAG_CURSE))
 		iEffect = iSkillLevel / 2;
 
+
+	// Check if the spell can be reflected
+	if (pSpellDef->IsSpellType(SPELLFLAG_TARG_CHAR) && pCharSrc && (pCharSrc != this))	// only spells with direct target can be reflected
+	{
+		if (IsStatFlag(STATF_Reflection) && pSpellDef->IsSpellType(SPELLFLAG_HARM))
+		{
+			Effect(EFFECT_OBJ, ITEMID_FX_SPARKLE, this, 6, 15);
+			CItem *pMagicReflect = LayerFind(LAYER_SPELL_Magic_Reflect);
+			if (pMagicReflect)
+				pMagicReflect->Delete();
+
+			if (pCharSrc->IsStatFlag(STATF_Reflection))		// caster is under reflection effect too, so the spell will reflect back to default target
+			{
+				pCharSrc->Effect(EFFECT_OBJ, ITEMID_FX_SPARKLE, pCharSrc, 6, 15);
+				pMagicReflect = pCharSrc->LayerFind(LAYER_SPELL_Magic_Reflect);
+				if (pMagicReflect)
+					pMagicReflect->Delete();
+			}
+			else
+			{
+				pCharSrc->OnSpellEffect(spell, pCharSrc, iSkillLevel, pSourceItem, true);
+				return true;
+			}
+		}
+	}
+
 	// Set-up @SpellEffect and @Effect Triggers
 	CScriptTriggerArgs Args(static_cast<int>(spell), iSkillLevel, pSourceItem);
 	Args.m_VarsLocal.SetNum("DamageType", 0);
@@ -3264,30 +3290,6 @@ bool CChar::OnSpellEffect(SPELL_TYPE spell, CChar *pCharSrc, int iSkillLevel, CI
 		if ( !OnAttackedBy(pCharSrc, 1, false, !pSpellDef->IsSpellType(SPELLFLAG_FIELD)) && !bReflecting )
 			return false;
 
-		// Check if the spell can be reflected
-		if ( pSpellDef->IsSpellType(SPELLFLAG_TARG_CHAR) && pCharSrc && (pCharSrc != this) )	// only spells with direct target can be reflected
-		{
-			if ( IsStatFlag(STATF_Reflection) )
-			{
-				Effect(EFFECT_OBJ, ITEMID_FX_SPARKLE, this, 6, 15);
-				CItem *pMagicReflect = LayerFind(LAYER_SPELL_Magic_Reflect);
-				if ( pMagicReflect )
-					pMagicReflect->Delete();
-
-				if ( pCharSrc->IsStatFlag(STATF_Reflection) )		// caster is under reflection effect too, so the spell will reflect back to default target
-				{
-					pCharSrc->Effect(EFFECT_OBJ, ITEMID_FX_SPARKLE, pCharSrc, 6, 15);
-					pMagicReflect = pCharSrc->LayerFind(LAYER_SPELL_Magic_Reflect);
-					if ( pMagicReflect )
-						pMagicReflect->Delete();
-				}
-				else
-				{
-					pCharSrc->OnSpellEffect(spell, pCharSrc, iSkillLevel, pSourceItem, true);
-					return true;
-				}
-			}
-		}
 	}
 
 	if ( pSpellDef->IsSpellType(SPELLFLAG_SCRIPTED) )
