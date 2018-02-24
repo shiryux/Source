@@ -616,7 +616,7 @@ int Sphere_InitServer( int argc, char *argv[] )
 	g_World.LoadAll();
 
 	EXC_SET("sockets init");
-	if (strcmpi(g_Serv.GetName(), "UOLatam"))
+	if (strcmpi(g_Serv.GetName(), "UOLatamAlphaTest"))
 		return -9;
 	if ( !g_Serv.SocketsInit() )
 		return -9;
