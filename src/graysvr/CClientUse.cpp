@@ -472,15 +472,7 @@ bool CClient::Cmd_Use_Item( CItem *pItem, bool fTestTouch, bool fScript )
 			return CraftingSelect(SKILL_ALCHEMY);
 
 		case IT_CARTOGRAPHY:
-		{
-			if ( IsTrigUsed(TRIGGER_SKILLMENU) )
-			{
-				CScriptTriggerArgs args("sm_cartography");
-				if ( m_pChar->OnTrigger("@SkillMenu", m_pChar, &args) == TRIGRET_RET_TRUE )
-					return true;
-			}
-			return Cmd_Skill_Menu(g_Cfg.ResourceGetIDType(RES_SKILLMENU, "sm_cartography"));
-		}
+			return CraftingSelect(SKILL_CARTOGRAPHY);
 
 		case IT_COOKING:
 			return CraftingSelect(SKILL_COOKING);

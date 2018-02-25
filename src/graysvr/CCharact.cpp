@@ -1779,6 +1779,9 @@ bool CChar::ItemBounce( CItem * pItem, bool bDisplayMsg )
 	if ( pItem->GetParent() == pPack )
 		return true;
 
+	if ( !pPack->CanContainerHold(pItem, this) )
+		pItem->MoveToDecay(GetTopPoint(), pItem->GetDecayTime());
+
 	LPCTSTR pszWhere = NULL;
 	if ( pPack && CanCarry(pItem) )		// this can happen at load time
 	{
