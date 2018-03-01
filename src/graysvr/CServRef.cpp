@@ -144,9 +144,6 @@ void CServerDef::SetName( LPCTSTR pszName )
 	if ( ! pszName )
 		return;
 	
-	if ( g_Serv.m_iModeCode == SERVMODE_Run )
-		g_Serv.m_timeShutdown = CServTime::GetCurrentTime() + 10;
-	
 	// No HTML tags using <> either.
 	TCHAR szName[ 2*MAX_SERVER_NAME_SIZE ];
 	size_t len = Str_GetBare( szName, pszName, sizeof(szName), "<>/\"\\" );

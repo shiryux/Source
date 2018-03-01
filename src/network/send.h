@@ -1493,7 +1493,7 @@ public:
 	virtual bool canSendTo(const NetState* state) const { return CanSendTo(state); }
 	static bool CanSendTo(const NetState* state)
 	{
-		return state->m_client->m_TooltipEnabled;
+		return true;
 	}
 };
 

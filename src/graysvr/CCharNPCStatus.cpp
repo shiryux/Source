@@ -242,6 +242,9 @@ WORD CChar::NPC_GetTrainMax(const CChar *pStudent, SKILL_TYPE Skill) const
 	WORD iMax;
 	WORD iMaxAllowed;
 
+	if (Skill_GetBase(Skill) < 50.0)
+		return 0;
+
 	CVarDefCont *pValue = GetKey("OVERRIDE.TRAINSKILLMAXPERCENT", true);
 	if ( pValue )
 		iMax = static_cast<WORD>(IMULDIV(pValue->GetValNum(), Skill_GetBase(Skill), 100));
