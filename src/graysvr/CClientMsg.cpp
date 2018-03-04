@@ -1204,7 +1204,7 @@ void CClient::addCharName( const CChar * pChar ) // Singleclick text for a chara
 		LPCTSTR title = pChar->GetTradeTitle();
 		if ( *title )
 		{
-			strcat( pszTemp, " " );
+			strcat( pszTemp, ", " );
 			strcat( pszTemp, title );
 		}
 	}

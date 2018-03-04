@@ -193,7 +193,7 @@ bool CChar::NPC_FightMayCast(bool fCheckSkill) const
 		return false;
 	if ( m_pArea && m_pArea->IsFlag(REGION_ANTIMAGIC_DAMAGE|REGION_FLAG_SAFE) )
 		return false;
-	if ( Stat_GetVal(STAT_INT) < 5 )
+	if ( Stat_GetVal(STAT_INT) < 15 )
 		return false;
 
 	return true;

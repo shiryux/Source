@@ -1834,7 +1834,7 @@ bool CChar::Spell_Equip_OnTick(CItem *pItem)
 
 			int iDmg = 0;
 			iLevel = pItem->m_itSpell.m_spelllevel / 200;
-			// pItem->m_itSpell.m_spelllevel -= 50;
+			pItem->m_itSpell.m_spelllevel -= 50;
 
 			// Poison Messages
 			static LPCTSTR const sm_Poison_Message[] =
@@ -1865,7 +1865,7 @@ bool CChar::Spell_Equip_OnTick(CItem *pItem)
 			SysMessagef(g_Cfg.GetDefaultMsg(DEFMSG_SPELL_YOUFEEL), sm_Poison_Message[iLevelTest]);
 
 			// Apply damage
-			iDmg = IMULDIV(Stat_GetMax(STAT_STR), g_Cfg.GetSpellEffect(SPELL_Poison, pItem->m_itSpell.m_spelllevel), 100);
+			iDmg = min(30, IMULDIV(Stat_GetMax(STAT_STR), g_Cfg.GetSpellEffect(SPELL_Poison, pItem->m_itSpell.m_spelllevel), 100));
 			OnTakeDamage(iDmg, pItem->m_uidLink.CharFind(), DAMAGE_MAGIC|DAMAGE_POISON, 0, 0, 0, 100, 0);
 			pItem->SetTimeout(5 * TICK_PER_SEC);
 

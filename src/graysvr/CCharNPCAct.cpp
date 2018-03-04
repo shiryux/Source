@@ -2118,9 +2118,9 @@ void CChar::NPC_Act_Fight()
 		return;
 
 	// Review our targets periodically.
-	if ( ! IsStatFlag(STATF_Pet) ||	m_pNPC->m_Brain == NPCBRAIN_BERSERK )
+	if ( !IsStatFlag(STATF_Pet) ||	m_pNPC->m_Brain == NPCBRAIN_BERSERK )
 	{
-		int iObservant = ( 130 - Stat_GetAdjusted(STAT_INT)) / 20;
+		int iObservant = ( 130 - Stat_GetAdjusted(STAT_INT)) / 15;
 		if ( ! Calc_GetRandVal( 2 + maximum( 0, iObservant )))
 		{
 			if ( NPC_LookAround())
@@ -2249,8 +2249,11 @@ void CChar::NPC_Act_Fight()
 	}
 
 	// Maybe i'll cast a spell if I can. if so maintain a distance.
-	if ( NPC_FightMagery( pChar ))
-		return;
+	if (!fSkipHardcoded)
+	{
+		if (NPC_FightMagery(pChar))
+			return;
+	}
 
 	if ( NPC_FightArchery( pChar ))
 		return;

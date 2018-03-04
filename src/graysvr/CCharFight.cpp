@@ -1664,7 +1664,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 
 		if ( !pCharDef->IsHumanID(pCharDef->GetID()) )
 		{
-			iMaxCoverage = Calc_GetRandVal2(pCharDef->m_defense / 2, pCharDef->m_defense);
+			iMaxCoverage = IMULDIV(pCharDef->m_defense, Calc_GetRandVal2(25, 45), 100);
 			goto ApplyDefense;
 		}
 
@@ -2029,7 +2029,7 @@ int CChar::Fight_CalcDamage( const CItem * pWeapon, bool bNoRandom, bool bGetMax
 	int iDmgMin, iDmgMax = 0;
 	STAT_TYPE iStatBonus = static_cast<STAT_TYPE>(GetDefNum("COMBATBONUSSTAT"));
 	int iStatBonusPercent = static_cast<int>(GetDefNum("COMBATBONUSPERCENT"));
-	if ( pWeapon != NULL && !m_pNPC )
+	if ( pWeapon != NULL )
 	{
 		iDmgMin = pWeapon->Weapon_GetAttack(false);
 		iDmgMax = pWeapon->Weapon_GetAttack(true);
@@ -2963,7 +2963,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		if (pCharTarg->IsStatFlag(STATF_HasShield) && pCharTarg->LayerFind(LAYER_HAND2))	// parry using shield
 		{
 			pItemHit = pCharTarg->LayerFind(LAYER_HAND2);
-			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 33;
+			ParryChance = pCharTarg->Skill_GetBase(SKILL_PARRYING) / 50;
 			if (pCharTarg->Skill_GetBase(SKILL_PARRYING) >= 1000)
 				ParryChance += 5;
 
@@ -2981,7 +2981,7 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 	
 	// Setting LOCALs
 	CScriptTriggerArgs Args(iDmg, iTyp, pWeapon);
-	Args.m_VarsLocal.SetNum("ItemDamageChance", 5);
+	Args.m_VarsLocal.SetNum("ItemDamageChance", 2);
 	Args.m_VarsLocal.SetNum("ParryingReduction", iParried);
 
 	if ( pAmmo )
