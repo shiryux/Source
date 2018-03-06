@@ -1,4 +1,4 @@
-# UOLatam 57a
+# UOA-0.58.1
 Modified version of SphereServer emulator for Ultima Online.
 Support will not be provided. Code will be customized.
 
