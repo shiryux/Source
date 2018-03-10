@@ -5,8 +5,8 @@
  #define GRAY_VER_BUILD				0
 #endif
 
-#define GRAY_VER_FILEVERSION		0,57,1,GRAY_VER_BUILD		// version to be set on generated .exe file
-#define GRAY_VER_STR				"0.57a"						// share version with all files
+#define GRAY_VER_FILEVERSION		0,58,1,GRAY_VER_BUILD		// version to be set on generated .exe file
+#define GRAY_VER_STR				"0.58.1"					// share version with all files
 
 #if defined(_DEBUG)
  #define GRAY_VERSION				GRAY_VER_STR "-Debug"
@@ -24,7 +24,7 @@
 
 #if defined(_WIN32)
  #define GRAY_VER_FILEOS			0x4L	//VOS__WINDOWS32
- #define GRAY_VER_FILEOS_STR		"[WIN32]"
+ #define GRAY_VER_FILEOS_STR		"[Win32]"
 #elif defined(_BSD)
  #define GRAY_VER_FILEOS			0x0L	//VOS_UNKNOWN
  #define GRAY_VER_FILEOS_STR		"[FreeBSD]"

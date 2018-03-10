@@ -334,20 +334,7 @@ bool PacketCreate::doCreate(NetState* net, LPCTSTR charname, bool bFemale, RACE_
 	pChar->SetName(charname);
 	pChar->SetPlayerAccount(account);
 	pChar->SetHue(wSkinHue|HUE_MASK_UNDERWEAR);
-
-	switch ( rtRace )
-	{
-		default:
-		case RACETYPE_HUMAN:
-			pChar->SetID(bFemale ? CREID_WOMAN : CREID_MAN);
-			break;
-		case RACETYPE_ELF:
-			pChar->SetID(bFemale ? CREID_ELFWOMAN : CREID_ELFMAN);
-			break;
-		case RACETYPE_GARGOYLE:
-			pChar->SetID(bFemale ? CREID_GARGWOMAN : CREID_GARGMAN);
-			break;
-	}
+	pChar->SetID(bFemale ? CREID_WOMAN : CREID_MAN);
 
 	// Set starting position
 	if ( g_Cfg.m_StartDefs.IsValidIndex(iStartLoc) )
@@ -438,19 +425,19 @@ bool PacketCreate::doCreate(NetState* net, LPCTSTR charname, bool bFemale, RACE_
 			iProfession = RES_NEWBIE_PROF_BLACKSMITH;
 			break;
 		case PROFESSION_NECROMANCER:
-			iProfession = RES_NEWBIE_PROF_NECROMANCER;
+			iProfession = RES_NEWBIE_PROF_MAGE;
 			bCreateSkillItems = false;
 			break;
 		case PROFESSION_PALADIN:
-			iProfession = RES_NEWBIE_PROF_PALADIN;
+			iProfession = RES_NEWBIE_PROF_MAGE;
 			bCreateSkillItems = false;
 			break;
 		case PROFESSION_SAMURAI:
-			iProfession = RES_NEWBIE_PROF_SAMURAI;
+			iProfession = RES_NEWBIE_PROF_WARRIOR;
 			bCreateSkillItems = false;
 			break;
 		case PROFESSION_NINJA:
-			iProfession = RES_NEWBIE_PROF_NINJA;
+			iProfession = RES_NEWBIE_PROF_WARRIOR;
 			bCreateSkillItems = false;
 			break;
 	}

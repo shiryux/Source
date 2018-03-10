@@ -2676,8 +2676,8 @@ private:
 
 public:
 	struct LastAttackers {
-		DWORD	charUID;
 		INT64	elapsed;
+		DWORD	charUID;
 		INT64	amountDone;
 		INT64	threat;
 	};
@@ -2685,9 +2685,9 @@ public:
 	
 	struct NotoSaves {
 		DWORD		charUID;	// Character viewing me
-		INT64		elapsed;	// Update timer
-		NOTO_TYPE	value;		// Notoriety type
 		NOTO_TYPE	color;		// Color sent on movement packets
+		INT64		time;		// Update timer
+		NOTO_TYPE	value;		// Notoriety type
 	};
 	std::vector<NotoSaves> m_notoSaves;
 
@@ -3500,20 +3500,37 @@ public:
 	void Noto_Murder();
 
 	/**
+	* @brief How much notoriety values do I have stored?
+	*
+	* @return amount of characters stored.
+	*/
+	int NotoSave();
+
+	/**
 	* @brief Adding someone to my notoriety list.
 	*
 	* @param pChar is retrieving my notoriety, I'm going to store what I have to send him on my list.
 	* @param value is the notoriety value I have for him
 	* @param color (if specified) is the color override sent in packets.
 	*/
-	void NotoSave_Add(CChar *pChar, NOTO_TYPE value, NOTO_TYPE color = NOTO_INVALID);
+	void NotoSave_Add( CChar * pChar, NOTO_TYPE value, NOTO_TYPE color = NOTO_INVALID );
 
 	/**
-	* @brief Removing stored data for pChar.
+	* @brief Retrieving the stored notoriety for this list's entry.
 	*
-	* @param pChar, the CChar I want to remove from my list.
+	* @param id is the entry we want to recover.
+	* @param bGetColor if true will retrieve the Color and not the Noto value.
+	* @return Value of Notoriety (or color)
 	*/
-	void NotoSave_Delete(CChar *pChar);
+	NOTO_TYPE NotoSave_GetValue( int id, bool bGetColor = false );
+
+	/**
+	* @brief Gets how much time this notoriety was stored.
+	*
+	* @param id the entry on the list.
+	* @return time in seconds.
+	*/
+	INT64 NotoSave_GetTime( int id );
 
 	/**
 	* @brief Clearing all notoriety data
@@ -3526,12 +3543,27 @@ public:
 	void NotoSave_Update();
 
 	/**
+	* @brief Deleting myself and sending data again for given char.
+	*
+	* @param id, entry of the viewer.
+	*/
+	void NotoSave_Resend( int id );
+
+	/**
 	* @brief Gets the entry list of the given CChar.
 	*
 	* @param pChar, CChar to retrieve the entry number for.
 	* @return the entry number.
 	*/
-	int NotoSave_GetID(CChar *pChar);
+	int NotoSave_GetID( CChar * pChar );
+
+	/**
+	* @brief Removing stored data for pChar.
+	*
+	* @param pChar, the CChar I want to remove from my list.
+	* @return true if successfully removed it.
+	*/
+	bool NotoSave_Delete( CChar * pChar );
 
 	/**
 	* @brief Removing expired notorieties.
