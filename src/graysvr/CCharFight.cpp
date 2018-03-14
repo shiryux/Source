@@ -3030,8 +3030,15 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			if (Dex < 80)
 				ParryChance = ParryChance * (20 + Dex) / 100;
 
-			if ( Calc_GetRandVal(100) < ParryChance)
+			if (Calc_GetRandVal(100) < ParryChance)
+			{
 				iParried = pItemHit->Armor_GetDefense() / 2;
+				pCharTarg->Skill_Experience(SKILL_PARRYING, ParryChance);
+			}
+			else
+			{
+				pCharTarg->Skill_Experience(SKILL_PARRYING, ParryChance / 2);
+			}
 		}
 	}
 
@@ -3084,7 +3091,6 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 		{
 			iDmg -= iParried;
 			pCharTarg->Effect(EFFECT_OBJ, ITEMID_FX_GLOW, this, 10, 16);
-			pCharTarg->Skill_Experience(SKILL_PARRYING, iParried);
 		
 			// Send messages if they want.
 			if (pCharTarg->IsPriv(PRIV_DETAIL))

@@ -249,7 +249,7 @@ WORD CChar::NPC_GetTrainMax(const CChar *pStudent, SKILL_TYPE Skill) const
 	if ( pValue )
 		iMax = static_cast<WORD>(IMULDIV(pValue->GetValNum(), Skill_GetBase(Skill), 100));
 	else
-		iMax = static_cast<WORD>(IMULDIV(g_Cfg.m_iTrainSkillPercent, Skill_GetBase(Skill), 100));
+		iMax = 300;
 
 	pValue = GetKey("OVERRIDE.TRAINSKILLMAX", true);
 	if ( pValue )

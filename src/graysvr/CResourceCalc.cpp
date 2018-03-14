@@ -310,7 +310,6 @@ int CResource::Calc_StealingItem( CChar * pCharThief, CItem * pItem, CChar * pCh
 	int iWeightItem = pItem->GetWeight();
 	
 	int iDifficulty = ((iSkillMark / 5) + Calc_GetRandVal(iDexMark / 2) + IMULDIV(iWeightItem, 4, WEIGHT_UNITS)) / 4;
-	g_Log.EventError("Stealing Diff 1 is %d\n", iDifficulty / 2);
 
 	CScriptTriggerArgs pArgs(iDifficulty);
 	if (pCharThief->Skill_OnTrigger(SKILL_STEALING, SKTRIG_USEQUICK, &pArgs))
@@ -319,7 +318,6 @@ int CResource::Calc_StealingItem( CChar * pCharThief, CItem * pItem, CChar * pCh
 	if ( pCharThief->IsStatFlag( STATF_War ))
 		iDifficulty += Calc_GetRandVal( iDexMark/2 );
 	
-	g_Log.EventError("Stealing Diff is %d\n", iDifficulty / 2);
 	return( iDifficulty / 2 );
 }
 
