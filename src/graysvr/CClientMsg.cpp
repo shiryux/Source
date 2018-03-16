@@ -1958,11 +1958,6 @@ void CClient::addManaUpdate( CChar *pChar )
 	PacketManaUpdate cmd(pChar, true);
 	cmd.send(this);
 
-	if ( pChar->m_pParty )
-	{
-		PacketManaUpdate cmd2(pChar, false);
-		pChar->m_pParty->StatsUpdateAll(pChar, &cmd2);
-	}
 }
 
 void CClient::addStamUpdate( CChar *pChar )
@@ -1974,11 +1969,6 @@ void CClient::addStamUpdate( CChar *pChar )
 	PacketStaminaUpdate cmd(pChar, true);
 	cmd.send(this);
 
-	if ( pChar->m_pParty )
-	{
-		PacketStaminaUpdate cmd2(pChar, false);
-		pChar->m_pParty->StatsUpdateAll(pChar, &cmd2);
-	}
 }
 
 void CClient::addHealthBarUpdate( const CChar * pChar )

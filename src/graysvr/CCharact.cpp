@@ -1783,7 +1783,7 @@ bool CChar::ItemBounce( CItem * pItem, bool bDisplayMsg )
 		pItem->MoveToDecay(GetTopPoint(), pItem->GetDecayTime());
 
 	LPCTSTR pszWhere = NULL;
-	if ( pPack && CanCarry(pItem) )		// this can happen at load time
+	if ( pPack && CanCarry(pItem) && pPack->CanContainerHold(pItem, this) )		// this can happen at load time
 	{
 		if ( IsTrigUsed(TRIGGER_DROPON_ITEM) )
 		{
