@@ -5,15 +5,15 @@
  #define SPHERE_VER_BUILD			0
 #endif
 
-#define GRAY_VER_FILEVERSION		0,58,1,GRAY_VER_BUILD		// version to be set on generated .exe file
-#define GRAY_VER_STR				"0.58.1"					// share version with all files
+#define SPHERE_VER_FILEVERSION		0,58,1,SPHERE_VER_BUILD		// version to be set on generated .exe file
+#define SPHERE_VER_STR				"UOA"						// share version with all files
 
 #if defined(_DEBUG)
  #define SPHERE_VERSION				SPHERE_VER_STR "-Debug"
  #define SPHERE_VER_FILEFLAGS		0x1L	//VS_FF_DEBUG
 #elif defined(_NIGHTLYBUILD)
- #define SPHERE_VERSION				SPHERE_VER_STR "-Nightly"
- #define SPHERE_VER_FILEFLAGS		0x2L	//VS_FF_PRERELEASE
+	#define SPHERE_VERSION				SPHERE_VER_STR "-Nightly"
+	#define SPHERE_VER_FILEFLAGS		0x2L	//VS_FF_PRERELEASE
 #elif defined(_PRIVATEBUILD)
  #define SPHERE_VERSION				SPHERE_VER_STR "-Private"
  #define SPHERE_VER_FILEFLAGS		0x8L	//VS_FF_PRIVATEBUILD
