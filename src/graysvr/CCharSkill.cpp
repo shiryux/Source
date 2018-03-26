@@ -3013,11 +3013,16 @@ int CChar::Skill_Fighting( SKTRIG_TYPE stage )
 	if ( stage == SKTRIG_START )
 	{
 		m_atFight.m_Swing_State = WAR_SWING_EQUIPPING;
-		INT64 iRemainingDelay = g_World.GetTimeDiff(m_atFight.m_Swing_NextAction);
-		if ( (iRemainingDelay < 0) || (iRemainingDelay > 255) )
-			iRemainingDelay = 0;
+		/* The following 4 lines should fix an exploit related to combat, but because they cause problem with
+		combat swings timer and we don't know what the exploit is I have commented them. 		
+		int64 iRemainingDelay = g_World.GetCurrentTime().GetTimeRaw() - m_atFight.m_timeNextCombatSwing;
+			if ( iRemainingDelay < 0 || iRemainingDelay > 255)
+				iRemainingDelay = 0;
 
-		SetTimeout(iRemainingDelay);
+			SetTimeout(iRemainingDelay); */
+
+		SetTimeout(3);
+		
 		return g_Cfg.Calc_CombatChanceToHit(this, m_Fight_Targ.CharFind());
 	}
 
@@ -3027,8 +3032,11 @@ int CChar::Skill_Fighting( SKTRIG_TYPE stage )
 		if ( !IsStatFlag(STATF_War) )
 			return -SKTRIG_ABORT;
 
-		if ( m_atFight.m_Swing_State != WAR_SWING_SWINGING )
+		if (m_atFight.m_Swing_State != WAR_SWING_SWINGING)
+		{
 			m_atFight.m_Swing_State = WAR_SWING_READY;
+			SetTimeout(1);
+		}
 
 		Fight_HitTry();
 		return -SKTRIG_STROKE;
