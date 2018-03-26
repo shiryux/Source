@@ -1563,7 +1563,7 @@ bool CChar::Skill_Mining_Smelt(CItem *pItemOre, CItem *pItemTarg)
 					continue;
 				}
 				pIngotDef = pBaseDef;
-				iIngotQty = static_cast<WORD>(pOreDef->m_BaseResources[i].GetResQty());
+				iIngotQty = static_cast<WORD>((pOreDef->m_BaseResources[i].GetResQty() * 60) / 100);
 			}
 		}
 	}
@@ -2694,8 +2694,11 @@ int CChar::Skill_Meditation(SKTRIG_TYPE stage)
 		return Calc_GetRandVal(100);	// how hard to get started ?
 	}
 
-	if ( stage == SKTRIG_STROKE )
+	if (stage == SKTRIG_STROKE)
+	{
+		Skill_Experience(SKILL_MEDITATION, m_Act_Difficulty);
 		return 0;
+	}
 
 	if ( stage == SKTRIG_SUCCESS )
 	{
