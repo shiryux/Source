@@ -160,8 +160,8 @@ NOTO_TYPE CChar::Noto_GetFlag(const CChar *pCharViewer, bool bAllowInvul, bool b
 
 	if ( pThis->m_notoSaves.size() )
 	{
-		if ( g_Cfg.m_iPetsInheritNotoriety && pThis->m_pNPC && pThis->NPC_PetGetOwner() )	// If I'm a pet and have owner I redirect noto to him.
-			pThis = pThis->NPC_PetGetOwner();
+		if ( g_Cfg.m_iPetsInheritNotoriety && pThis->m_pNPC && pThis->GetOwner() )	// If I'm a pet and have owner I redirect noto to him.
+			pThis = pThis->GetOwner();
 
 		int id = pThis->NotoSave_GetID(pTarget);
 		if ( id != -1 )
@@ -211,7 +211,7 @@ NOTO_TYPE CChar::Noto_CalcFlag(const CChar *pCharViewer, bool bAllowInvul) const
 		// Do we have a master to inherit notoriety from?
 		if ( g_Cfg.m_iPetsInheritNotoriety != 0 )
 		{
-			CChar *pMaster = NPC_PetGetOwner();
+			CChar *pMaster = GetOwner();
 			if ( pMaster && pMaster != pCharViewer ) // master doesn't want to see their own status
 			{
 				// Protect against infinite loop
@@ -1442,7 +1442,7 @@ bool CChar::OnAttackedBy(CChar *pCharSrc, bool bCommandPet, bool bShouldReveal)
 		else		
 		{
 			// If it is a pet then this a crime others can report.
-			CChar * pCharMark = IsStatFlag(STATF_Pet) ? NPC_PetGetOwner() : this;
+			CChar * pCharMark = IsStatFlag(STATF_Pet) ? GetOwner() : this;
 			pCharSrc->CheckCrimeSeen(Skill_GetActive(), pCharMark, NULL, NULL);
 		}
 	}
@@ -1674,7 +1674,7 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		{
 			if ( m_pArea->IsFlag(REGION_FLAG_SAFE) )
 				goto effect_bounce;
-			if ( m_pArea->IsFlag(REGION_FLAG_NO_PVP) && pSrc && ((IsStatFlag(STATF_Pet) && NPC_PetGetOwner() == pSrc) || (m_pPlayer && (pSrc->m_pPlayer || pSrc->IsStatFlag(STATF_Pet)))) )
+			if ( m_pArea->IsFlag(REGION_FLAG_NO_PVP) && pSrc && ((IsStatFlag(STATF_Pet) && GetOwner() == pSrc) || (m_pPlayer && (pSrc->m_pPlayer || pSrc->IsStatFlag(STATF_Pet)))) )
 				goto effect_bounce;
 		}
 	}

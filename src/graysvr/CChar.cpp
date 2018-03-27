@@ -1262,7 +1262,7 @@ bool CChar::r_GetRef( LPCTSTR & pszKey, CScriptObj * & pRef )
 				SKIP_SEPARATORS(pszKey);
 				return( true );
 			case CHR_OWNER:
-				pRef	= NPC_PetGetOwner();
+				pRef = GetOwner();
 				return( true );
 			case CHR_WEAPON:
 				{
@@ -1870,6 +1870,8 @@ do_default:
 				sVal = "0";
 			return( true );
 		case CHC_ISMYPET:
+			if (!m_pNPC)
+				return false;
 			sVal = NPC_IsOwnedBy( pCharSrc, true ) ? "1" : "0";
 			return( true );
 		case CHC_ISONLINE:

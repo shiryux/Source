@@ -199,22 +199,23 @@ bool CChar::NPC_FightMayCast(bool fCheckSkill) const
 	return true;
 }
 
-bool CChar::NPC_IsOwnedBy(const CChar *pChar, bool fAllowGM) const
+bool CChar::NPC_IsOwnedBy(const CChar * pChar, bool fAllowGM) const
 {
 	ADDTOCALLSTACK("CChar::NPC_IsOwnedBy");
+	ASSERT(m_pNPC);
 	// Is pChar my master ?
 	// BESERK will not listen to commands tho.
 	// fAllowGM = consider GM's to be owners of all NPC's
 
-	if ( !pChar )
+	if (pChar == NULL)
 		return false;
-	if ( pChar == this )
+	if (this == pChar)
 		return true;
-	if ( fAllowGM && pChar->IsPriv(PRIV_GM) )
-		return (pChar->GetPrivLevel() > GetPrivLevel());
-	if ( !m_pNPC || !IsStatFlag(STATF_Pet) )	// shortcut - i'm not a pet.
-		return false;
-	if ( m_pNPC->m_Brain == NPCBRAIN_BERSERK )	// i cannot be commanded.
+
+	if (fAllowGM && pChar->IsPriv(PRIV_GM))
+		return(pChar->GetPrivLevel() > GetPrivLevel());
+
+	if ( !IsStatFlag(STATF_Pet) )
 		return false;
 
 	return (Memory_FindObjTypes(pChar, MEMORY_IPET) != NULL);
@@ -420,7 +421,7 @@ int CChar::NPC_GetHostilityLevelToward(const CChar *pCharTarg) const
 		return 0;
 
 	// If it's a pet, inherit hostility from it's master
-	CChar *pCharOwn = pCharTarg->NPC_PetGetOwner();
+	CChar *pCharOwn = pCharTarg->GetOwner();
 	if ( pCharOwn && (pCharOwn != this) )
 	{
 		static int sm_iReentrant = 0;

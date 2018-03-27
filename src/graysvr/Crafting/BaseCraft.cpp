@@ -1,7 +1,6 @@
 #include <cmath>
 #include "../graysvr.h"	// predef header.
 #include "../CClient.h"
-#include "../CChar.h"
 #include "../../network/network.h"
 #include "../../network/send.h"
 

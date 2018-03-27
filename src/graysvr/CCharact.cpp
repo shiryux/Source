@@ -1638,8 +1638,8 @@ int CChar::ItemPickup(CItem * pItem, WORD amount)
 		bool bCanTake = false;
 		if (pChar == this) // we can always take our own items
 			bCanTake = true;
-		else if ((pItem->GetParentObj() != pChar) || g_Cfg.m_fCanUndressPets) // our owners can take items from us (with CanUndressPets=true, they can undress us too)
-			bCanTake = pChar->NPC_IsOwnedBy(this);
+		else if ( (pItem->GetParentObj() != pChar) || (g_Cfg.m_fCanUndressPets == true) ) // our owners can take items from us (with CanUndressPets=true, they can undress us too)
+			bCanTake = pChar->IsOwnedBy(this);
 		else  // higher priv players can take items and undress us
 			bCanTake = IsPriv(PRIV_GM) && GetPrivLevel() > pChar->GetPrivLevel();
 
@@ -2720,8 +2720,8 @@ bool CChar::Death()
 			}
 		}
 
-		if ( pItem->IsMemoryTypes(MEMORY_HARMEDBY) )
-			Memory_ClearTypes( static_cast<CItemMemory *>(pItem), 0xFFFF );
+		if ( pItem->IsType(IT_EQ_MEMORY_OBJ) )
+			Memory_ClearTypes(static_cast<CItemMemory *>(pItem), 0xFFFF & ~(MEMORY_IPET | MEMORY_TOWN | MEMORY_GUILD));
 	}
 
 	// Give credit for the kill to my attacker(s)
@@ -2763,13 +2763,13 @@ bool CChar::Death()
 	StatFlag_Clear(STATF_Stone|STATF_Freeze|STATF_Hidden|STATF_Sleeping|STATF_Hovering);
 	SetPoisonCure(0, true);
 	Skill_Cleanup();
-	Spell_Dispel(100);			// get rid of all spell effects (moved here to prevent double @Destroy trigger)
+	Spell_Dispel(100);		// get rid of all spell effects (moved here to prevent double @Destroy trigger)
 
 	if ( m_pPlayer )		// if I'm NPC then my mount goes with me
 		Horse_UnMount();
 
 	// Create the corpse item
-	bool bFrontFall = (Calc_GetRandVal(2) > 0);
+	bool bFrontFall = (Calc_GetRandVal(2) ? true : false);
 	CItemCorpse *pCorpse = MakeCorpse(bFrontFall);
 	if ( pCorpse )
 	{

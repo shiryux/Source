@@ -726,6 +726,37 @@ WORD CChar::Food_CanEat( CObjBase *pObj ) const
 	return 0;
 }
 
+CChar * CChar::GetOwner() const
+{
+	ADDTOCALLSTACK("CChar::GetOwner");
+
+	if (m_pPlayer)
+		return NULL;
+	if (m_pNPC)
+		return NPC_PetGetOwner();
+	return NULL;
+}
+
+bool CChar::IsOwnedBy(const CChar * pChar, bool fAllowGM) const
+{
+	ADDTOCALLSTACK("CChar::IsOwnedBy");
+	// Is pChar my master ?
+	// BESERK will not listen to commands tho.
+	// fAllowGM = consider GM's to be owners of all NPC's
+
+	if (!pChar)
+		return false;
+	if (pChar == this)
+		return true;
+
+	if (m_pPlayer)
+		return false;
+	if (m_pNPC)
+		return NPC_IsOwnedBy(pChar, fAllowGM);
+
+	return false;
+}
+
 LPCTSTR CChar::GetTradeTitle() const
 {
 	ADDTOCALLSTACK("CChar::GetTradeTitle");
