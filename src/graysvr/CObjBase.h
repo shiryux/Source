@@ -2759,7 +2759,7 @@ public:
 
 	// Some character action in progress.
 	SKILL_TYPE	m_Act_SkillCurrent;	// Currently using a skill. Could be combat skill.
-	CGrayUID	m_Act_Targ;			// Current caction target
+	CGrayUID	m_Act_Targ;			// Current action target
 	CGrayUID	m_Fight_Targ;		// Current combat target
 	CGrayUID	m_Act_TargPrv;		// Previous target.
 	int			m_Act_Difficulty;	// -1 = fail skill. (0-100) for skill advance calc.
@@ -3940,7 +3940,8 @@ private:
 	int NPC_GetWeaponUseScore( CItem * pItem );
 
 	int  NPC_GetHostilityLevelToward( const CChar * pCharTarg ) const;
-	int  NPC_GetAttackMotivation(CChar *pChar) const;
+	int	 NPC_GetAttackContinueMotivation(CChar * pChar, int iMotivation = 0) const;
+	int  NPC_GetAttackMotivation(CChar *pChar, int iMotivation = 0) const;
 	bool NPC_CheckHirelingStatus();
 	WORD NPC_GetTrainMax( const CChar *pStudent, SKILL_TYPE Skill ) const;
 

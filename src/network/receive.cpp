@@ -98,14 +98,10 @@ bool PacketCreate::onReceive(NetState* net, bool hasExtraSkill)
 		switch (sex)
 		{
 			case 0x0: case 0x1: case 0x2: case 0x3:
+			case 0x4: case 0x5:
+			case 0x6: case 0x7:
 			default:
 				rtRace = RACETYPE_HUMAN;
-				break;
-			case 0x4: case 0x5:
-				rtRace = RACETYPE_ELF;
-				break;
-			case 0x6: case 0x7:
-				rtRace = RACETYPE_GARGOYLE;
 				break;
 		}
 	}
@@ -119,7 +115,7 @@ bool PacketCreate::onReceive(NetState* net, bool hasExtraSkill)
 			0x3 = Elf (female)
 		*/
 		if ((sex - 2) >= 0)
-			rtRace = RACETYPE_ELF;
+			rtRace = RACETYPE_HUMAN;
 	}
 
 	return doCreate(net, charname, isFemale, rtRace, strength, dexterity, intelligence, prof, skill1, skillval1, skill2, skillval2, skill3, skillval3, skill4, skillval4, hue, hairid, hairhue, beardid, beardhue, shirthue, pantshue, ITEMID_NOTHING, startloc, flags);
@@ -837,7 +833,7 @@ bool PacketItemEquipReq::onReceive(NetState* net)
 
 	CChar* target = targetSerial.CharFind();
 	bool bCanCarry = target->CanCarry(item);
-	if ( !target || (itemLayer >= LAYER_HORSE) || !target->NPC_IsOwnedBy(source) || !bCanCarry || !target->ItemEquip(item, source) )
+	if ( !target || (itemLayer >= LAYER_HORSE) || !target->IsOwnedBy(source) || !bCanCarry || !target->ItemEquip(item, source) )
 	{
 		client->Event_Item_Drop_Fail(item);		//cannot equip
 		if ( !bCanCarry )

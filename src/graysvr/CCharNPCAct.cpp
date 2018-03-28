@@ -1032,8 +1032,12 @@ bool CChar::NPC_LookAtCharMonster( CChar * pChar )
 
 	if ( !m_pNPC )
 		return false;
-	if ( Fight_IsActive() && m_Act_Targ == pChar->GetUID() )	// same targ.
-		return false;
+
+	int iFoodLevel = Food_GetLevelPercent();
+
+	// Attacks those not of my kind.
+	if (!Noto_IsCriminal() && iFoodLevel > 40)		// I am not evil ?
+		return NPC_LookAtCharHuman(pChar);
 
 	// Attack if i am stronger.
 	// or i'm just stupid.
@@ -1059,6 +1063,12 @@ bool CChar::NPC_LookAtCharHuman( CChar * pChar )
 	if ( !m_pNPC || pChar->IsStatFlag(STATF_DEAD) )
 		return false;
 
+	if (Noto_IsEvil())		// I am evil.
+	{
+		// Attack others if we are evil.
+		return(NPC_LookAtCharMonster(pChar));
+	}
+	
 	bool bCriminal = (pChar->IsStatFlag(STATF_Criminal) || (pChar->Noto_IsEvil() && g_Cfg.m_fGuardsOnMurderers) || pChar->NPC_IsMonster());
 	if ( !bCriminal )
 		return false;
@@ -1259,8 +1269,10 @@ bool CChar::NPC_LookAtChar( CChar *pChar )
 	// RETURN:
 	//   true = yes i do want to take a new action.
 	//
-
-	if ( !m_pNPC || !pChar || ( pChar == this ) || !CanSeeLOS(pChar,LOS_NB_WINDOWS) )//Flag - we can attack through a window
+	if ( !m_pNPC )
+		return false;
+	
+	if ( !pChar || ( pChar == this ) || !CanSeeLOS(pChar,LOS_NB_WINDOWS) )//Flag - we can attack through a window
 		return false;
 
 	if ( IsTrigUsed(TRIGGER_NPCLOOKATCHAR) )
@@ -1426,10 +1438,11 @@ bool CChar::NPC_LookAround( bool fForceCheckItems )
 				break;
 
 			iDist = GetTopDist3D(pItem);
-			if ( (iDist > iRangeBlur) && Calc_GetRandVal(iDist) )
-				continue;	// can't see them.
-			if ( abs(GetTopZ() - pItem->GetTopZ()) > 5 )
-				continue;
+			if (iDist > iRangeBlur)
+			{
+				if (Calc_GetRandVal(iDist))
+					continue;	// can't see them.
+			}
 			if ( NPC_LookAtItem(pItem, iDist) )
 				return true;
 		}
@@ -1766,9 +1779,7 @@ bool CChar::NPC_FightMagery(CChar * pChar)
 	if (iDist >((UO_MAP_VIEW_SIGHT * 3) / 4))	// way too far away . close in.
 		return(false);
 
-	if (iDist <= 1 &&
-		Skill_GetBase(SKILL_TACTICS) > 200 &&
-		!Calc_GetRandVal(2))
+	if ( (iDist <= 1) && (Skill_GetBase(SKILL_TACTICS) > 200) && (!Calc_GetRandVal(2)) )
 	{
 		// Within striking distance.
 		// Stand and fight for a bit.
@@ -2120,11 +2131,14 @@ void CChar::NPC_Act_Fight()
 	// Review our targets periodically.
 	if ( !IsStatFlag(STATF_Pet) ||	m_pNPC->m_Brain == NPCBRAIN_BERSERK )
 	{
-		int iObservant = ( 130 - Stat_GetAdjusted(STAT_INT)) / 15;
+		int iObservant = ( 130 - Stat_GetAdjusted(STAT_INT)) / 2;
 		if ( ! Calc_GetRandVal( 2 + maximum( 0, iObservant )))
 		{
-			if ( NPC_LookAround())
+			if (NPC_LookAround())
+			{
+				SetTimeout(1);
 				return;
+			}
 		}
 	}
 
@@ -2306,7 +2320,7 @@ bool CChar::NPC_Act_Talk()
 		return( false );
 	}
 
-	m_atTalk.m_WaitCount--;
+	--m_atTalk.m_WaitCount;
 	return( true );	// just keep waiting.
 }
 

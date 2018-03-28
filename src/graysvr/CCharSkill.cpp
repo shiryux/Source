@@ -29,7 +29,7 @@ void CChar::Action_StartSpecial( CREID_TYPE id )
 			pItem->m_itSpell.m_spelllevel = static_cast<WORD>(100 + Calc_GetRandVal(500));
 			pItem->m_itSpell.m_spellcharges = 1;
 			pItem->m_uidLink = GetUID();
-			pItem->MoveToDecay(GetTopPoint(), 10 + Calc_GetRandVal(50)*TICK_PER_SEC);
+			pItem->MoveToDecay(GetTopPoint(), 10 + (Calc_GetRandVal(60) * TICK_PER_SEC));
 			break;
 		}
 		case CREID_GIANT_SPIDER:
@@ -38,7 +38,7 @@ void CChar::Action_StartSpecial( CREID_TYPE id )
 			CItem *pItem = CItem::CreateScript(static_cast<ITEMID_TYPE>(Calc_GetRandVal2(ITEMID_WEB1_1, ITEMID_WEB1_4)), this);
 			ASSERT(pItem);
 			pItem->SetType(IT_WEB);
-			pItem->MoveToDecay(GetTopPoint(), 10 + Calc_GetRandVal(170)*TICK_PER_SEC);
+			pItem->MoveToDecay(GetTopPoint(), 10 + (Calc_GetRandVal(80) * TICK_PER_SEC));
 			break;
 		}
 		default:
@@ -3024,7 +3024,7 @@ int CChar::Skill_Fighting( SKTRIG_TYPE stage )
 
 			SetTimeout(iRemainingDelay); */
 
-		SetTimeout(3);
+		SetTimeout(0);
 		
 		return g_Cfg.Calc_CombatChanceToHit(this, m_Fight_Targ.CharFind());
 	}
@@ -3038,7 +3038,6 @@ int CChar::Skill_Fighting( SKTRIG_TYPE stage )
 		if (m_atFight.m_Swing_State != WAR_SWING_SWINGING)
 		{
 			m_atFight.m_Swing_State = WAR_SWING_READY;
-			SetTimeout(1);
 		}
 
 		Fight_HitTry();

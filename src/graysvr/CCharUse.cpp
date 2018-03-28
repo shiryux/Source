@@ -538,7 +538,7 @@ bool CChar::Use_Item_Web( CItem * pItemWeb )
 	// Try to break it.
 	int iStr = pItemWeb->m_itWeb.m_Hits_Cur;
 	if ( iStr == 0 )
-		iStr = pItemWeb->m_itWeb.m_Hits_Cur = 60 + Calc_GetRandVal(250);
+		iStr = pItemWeb->m_itWeb.m_Hits_Cur = 5;
 
 	// Since broken webs become spider silk, we should get out of here now if we aren't in a web.
 	CItem *pFlag = LayerFind(LAYER_FLAG_Stuck);

@@ -286,7 +286,7 @@ PacketHealthBarInfo::PacketHealthBarInfo(const CClient *target, CObjBase *object
 	{
 		if ( objectChar )
 		{
-			canRename = objectChar->NPC_IsOwnedBy(character);
+			canRename = objectChar->IsOwnedBy(character);
 			writeInt16(static_cast<WORD>((objectChar->Stat_GetVal(STAT_STR) * 100) / maximum(objectChar->Stat_GetMax(STAT_STR), 1)));
 		}
 		else
@@ -2357,7 +2357,8 @@ PacketPaperdoll::PacketPaperdoll(const CClient* target, const CChar* character) 
 		flags |= target->m_NetState->isClientVersion(MINCLIVER_AOS) ? 0x1 : 0x40;
 	if (target->m_NetState->isClientVersion(MINCLIVER_AOS))
 	{
-		if (character == target->GetChar() || (g_Cfg.m_fCanUndressPets ? character->NPC_IsOwnedBy(target->GetChar()) : (target->IsPriv(PRIV_GM) && (target->GetPrivLevel() > character->GetPrivLevel()))))
+		if (character == target->GetChar() || 
+			(g_Cfg.m_fCanUndressPets ? character->IsOwnedBy(target->GetChar()) : (target->IsPriv(PRIV_GM) && (target->GetPrivLevel() > character->GetPrivLevel()))))
 			flags |= 0x2;
 	}
 

@@ -236,6 +236,33 @@ CChar *CChar::NPC_PetGetOwner() const
 	return pMemory->m_uidLink.CharFind();
 }
 
+CChar * CChar::NPC_PetGetOwnerRecursive() const
+{
+	ADDTOCALLSTACK("CChar::NPC_PetGetOwnerRecursive");
+	ASSERT(m_pNPC);
+	// Assume i am a pet. Get the primary owner (the owner of the owner of my owner and so on).
+
+	static int iReentrantCheck_PetGetOwnerRecursive = 0;
+
+	CChar *pCharOwner = NULL, *pCharOwnerNext = const_cast<CChar*>(this);
+	while ((pCharOwnerNext = pCharOwnerNext->NPC_PetGetOwner()) != NULL)
+	{
+		if (iReentrantCheck_PetGetOwnerRecursive > 30)
+		{
+			DEBUG_ERR(("Too many owners (circular ownership?) to continue searching the primary owner of %s uid=0%x\n", GetName(), GetUID().GetPrivateUID()));
+			iReentrantCheck_PetGetOwnerRecursive = 0;
+			return NULL;
+		}
+		pCharOwner = pCharOwnerNext;
+		if (!pCharOwner->m_pNPC)
+			break;
+		++iReentrantCheck_PetGetOwnerRecursive;
+	}
+
+	iReentrantCheck_PetGetOwnerRecursive = 0;
+	return pCharOwner;
+}
+
 WORD CChar::NPC_GetTrainMax(const CChar *pStudent, SKILL_TYPE Skill) const
 {
 	ADDTOCALLSTACK("CChar::NPC_GetTrainMax");
@@ -420,6 +447,8 @@ int CChar::NPC_GetHostilityLevelToward(const CChar *pCharTarg) const
 	if ( !m_pNPC || !pCharTarg )
 		return 0;
 
+	int iHostility = 0;
+
 	// If it's a pet, inherit hostility from it's master
 	CChar *pCharOwn = pCharTarg->GetOwner();
 	if ( pCharOwn && (pCharOwn != this) )
@@ -437,29 +466,149 @@ int CChar::NPC_GetHostilityLevelToward(const CChar *pCharTarg) const
 		return iHostility;
 	}
 
-	if ( m_pNPC->m_Brain == NPCBRAIN_BERSERK )		// Beserks always hate everyone
-		return 100;
-	if ( pCharTarg->m_pPlayer )
-		return 100;
+	int iKarma = Stat_GetAdjusted(STAT_KARMA);
 
-	if ( pCharTarg->m_pNPC )
+	bool fDoMemBase = false;
+
+	if (Noto_IsEvil() &&	// i am evil.
+		(m_pArea && !m_pArea->IsGuarded()) &&	// we are not in an evil town.
+		pCharTarg->m_pPlayer)	// my target is a player.
 	{
-		if ( !g_Cfg.m_fMonsterFight )	// Monsters are not supposed to fight other monsters!
-			return 0;
-		if ( GetDispID() == pCharTarg->GetDispID() )	// I will never attack those of my own kind
-			return -100;
-		else if ( NPC_GetAllyGroupType(GetDispID()) == NPC_GetAllyGroupType(pCharTarg->GetDispID()) )
-			return -50;
-		else if ( m_pNPC->m_Brain == pCharTarg->m_pNPC->m_Brain )
-			return -30;
+		// If i'm evil i give no benefit to players with bad karma.
+		// I hate all players.
+		// Unless i'm in a guarded area. then they are cool.
+		iHostility = 51;
+	}
+	else if (m_pNPC->m_Brain == NPCBRAIN_BERSERK )	
+	{
+		if ( GetOwner() != pCharTarg ) // I'm berserk, except for creator.
+			iHostility = 100;
+	}
+	else if (pCharTarg->m_pNPC &&	// my target is an NPC
+		pCharTarg->m_pNPC->m_Brain != NPCBRAIN_BERSERK &&	// ok to hate beserks.
+		!g_Cfg.m_fMonsterFight)		// monsters are not supposed to fight other monsters !
+	{
+		iHostility = -50;
+		fDoMemBase = true;	// set this low in case we are defending ourselves. but not attack for hunger.
+	}
+	else
+	{
+		// base hostillity on karma diff.
 
-		return 100;
+		int iKarmaTarg = pCharTarg->Stat_GetAdjusted(STAT_KARMA);
+
+		if (Noto_IsEvil())
+		{
+			// I'm evil.
+			if (iKarmaTarg > 0)
+			{
+				iHostility += (iKarmaTarg) / 1024;
+			}
+		}
+		else if (iKarma > 300)
+		{
+			// I'm good and my target is evil.
+			if (iKarmaTarg < -100)
+			{
+				iHostility += (-iKarmaTarg) / 1024;
+			}
+		}
 	}
 
-	return 0;
+	// Based on just creature type.
+
+	if (!fDoMemBase)
+	{
+		if (pCharTarg->m_pNPC)
+		{
+			// Human NPC's will attack humans .
+
+			if (GetDispID() == pCharTarg->GetDispID())
+			{
+				// I will never attack those of my own kind...even if starving
+				iHostility -= 100;
+			}
+			else if (NPC_GetAllyGroupType(GetDispID()) == NPC_GetAllyGroupType(pCharTarg->GetDispID()))
+			{
+				iHostility -= 50;
+			}
+			else if (pCharTarg->m_pNPC->m_Brain == m_pNPC->m_Brain)	// My basic kind
+			{
+				// Won't attack other monsters. (unless very hungry)
+				iHostility -= 30;
+			}
+		}
+		else
+		{
+			// Not immediately hostile if looks the same as me.
+			if (!IsPlayableCharacter() && NPC_GetAllyGroupType(GetDispID()) == NPC_GetAllyGroupType(pCharTarg->GetDispID()))
+			{
+				iHostility -= 51;
+			}
+		}
+	}
+
+	// I have been attacked/angered by this creature before ?
+	CItemMemory * pMemory = Memory_FindObjTypes(pCharTarg, MEMORY_FIGHT | MEMORY_HARMEDBY | MEMORY_IRRITATEDBY | MEMORY_SAWCRIME | MEMORY_AGGREIVED);
+	if (pMemory)
+	{
+		iHostility += 50;
+	}
+	return(iHostility);
 }
 
-int CChar::NPC_GetAttackMotivation(CChar *pChar) const
+int CChar::NPC_GetAttackContinueMotivation(CChar * pChar, int iMotivation) const
+{
+	ADDTOCALLSTACK("CChar::NPC_GetAttackContinueMotivation");
+	ASSERT(m_pNPC);
+	// I have seen fit to attack them.
+	// How much do i want to continue an existing fight ? cowardice ?
+	// ARGS:
+	//  iMotivation = My base motivation toward this creature.
+	//
+	// RETURN:
+	// -101 = ? dead meat. (run away)
+	//
+	// 0 = I'm have no interest.
+	// 50 = even match.
+	// 100 = he's a push over.
+	if (!pChar)
+		return 0;
+
+	if (!pChar->Fight_IsAttackable())
+		return (-100);
+	if (m_pNPC->m_Brain == NPCBRAIN_GUARD)
+		return (100);
+	if (m_pNPC->m_Brain == NPCBRAIN_BERSERK)
+		return (iMotivation + 80 - GetDist(pChar));	// less interested the further away they are
+
+	// Try to stay on one target.
+	if (Fight_IsActive() && m_Act_Targ == pChar->GetUID())
+		iMotivation += 8;
+
+	// Less interested the further away they are.
+	iMotivation -= GetDist(pChar);
+
+	if (!g_Cfg.m_fMonsterFear)
+		return(iMotivation);
+
+	// I'm just plain stronger.
+	iMotivation += (Stat_GetAdjusted(STAT_STR) - pChar->Stat_GetAdjusted(STAT_STR));
+
+	// I'm healthy.
+	int iTmp = GetHealthPercent() - pChar->GetHealthPercent();
+	if (iTmp < -50)
+		iMotivation -= 50;
+	else if (iTmp > 50)
+		iMotivation += 50;
+
+	// I'm smart and therefore more cowardly. (if injured)
+	iMotivation -= Stat_GetAdjusted(STAT_INT) / 16;
+
+	return(iMotivation);
+}
+
+int CChar::NPC_GetAttackMotivation(CChar *pChar, int iMotivation) const
 {
 	ADDTOCALLSTACK("CChar::NPC_GetAttackMotivation");
 	// Some sort of monster.
@@ -470,32 +619,20 @@ int CChar::NPC_GetAttackMotivation(CChar *pChar) const
 	//   0 = I'm have no interest.
 	//   50 = even match.
 	//   100 = he's a push over.
-
-	if ( !m_pNPC || !pChar || !pChar->m_pArea )
-		return 0;
-	if ( pChar->m_pArea->IsFlag(REGION_FLAG_SAFE) )
+	if (!m_pNPC)
 		return 0;
 
-	int iMotivation = NPC_GetHostilityLevelToward(pChar);
-	if ( iMotivation <= 0 )
-		return iMotivation;
-
-	if ( !pChar->Fight_IsAttackable() )
+	if (!pChar || !pChar->m_pArea)
 		return 0;
-	if ( (m_pNPC->m_Brain == NPCBRAIN_BERSERK) || (m_pNPC->m_Brain == NPCBRAIN_GUARD) )
-		return 100;
+	if (IsStatFlag(STATF_DEAD) || pChar->IsStatFlag(STATF_DEAD))
+		return 0;
+	if (pChar->m_pArea->IsFlag(REGION_FLAG_SAFE))
+		return 0;
 
-	// Try to stay on one target
-	if ( Fight_IsActive() && (m_Act_Targ == pChar->GetUID()) )
-		iMotivation += 10;
+	iMotivation += NPC_GetHostilityLevelToward(pChar);
+	if (iMotivation > 0)
+		iMotivation = NPC_GetAttackContinueMotivation(pChar, iMotivation);		// Am i injured etc ?
 
-	// Less interested the further away they are
-	iMotivation -= GetDist(pChar);
-
-	if ( g_Cfg.m_fMonsterFear )
-	{
-		if ( GetHealthPercent() < 50 )
-			iMotivation -= 50 + (Stat_GetAdjusted(STAT_INT) / 16);
-	}
 	return iMotivation;
+
 }

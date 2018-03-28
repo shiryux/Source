@@ -4738,7 +4738,7 @@ int CItem::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType )
 			if ( pSrc )
 				pSrc->SysMessage( g_Cfg.GetDefaultMsg( DEFMSG_WEB_DESTROY ) );
 			Delete();
-			return( INT_MAX );
+			return( 2 );
 		}
 
 		if ( pSrc )

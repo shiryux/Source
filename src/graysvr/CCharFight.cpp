@@ -1055,7 +1055,11 @@ void CChar::OnNoticeCrime( CChar * pCriminal, const CChar * pCharMark )
 			bCriminal = Args.m_iN1 ? true : false;
 		}
 		if (bCriminal)
-			Memory_AddObjTypes( pCriminal, MEMORY_SAWCRIME );
+		{
+			Memory_AddObjTypes(pCriminal, MEMORY_SAWCRIME);
+			pCriminal->Noto_Criminal();
+			//pCriminal->NotoSave_Update();
+		}
 		return;
 	}
 
@@ -1435,7 +1439,7 @@ bool CChar::OnAttackedBy(CChar *pCharSrc, bool bCommandPet, bool bShouldReveal)
 	Attacker_Add(pCharSrc);
 
 	// Are they a criminal for it ? Is attacking me a crime ?
-	if ( Noto_GetFlag(pCharSrc) == NOTO_GOOD )
+	if (Noto_GetFlag(pCharSrc) == NOTO_GOOD) 
 	{
 		if ( m_pClient )	// I decide if this is a crime.
 			OnNoticeCrime( pCharSrc, this );
@@ -1670,12 +1674,26 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		}
 		if ( (uType & DAMAGE_FIRE) && Can(CAN_C_FIRE_IMMUNE) )
 			goto effect_bounce;
+		if ( pSrc->m_pNPC && (pSrc->NPC_PetGetOwner() == this) && (pSrc->m_pNPC->m_Brain != NPCBRAIN_BERSERK) )
+			goto effect_bounce;
 		if ( m_pArea )
 		{
 			if ( m_pArea->IsFlag(REGION_FLAG_SAFE) )
 				goto effect_bounce;
-			if ( m_pArea->IsFlag(REGION_FLAG_NO_PVP) && pSrc && ((IsStatFlag(STATF_Pet) && GetOwner() == pSrc) || (m_pPlayer && (pSrc->m_pPlayer || pSrc->IsStatFlag(STATF_Pet)))) )
-				goto effect_bounce;
+			if ( m_pArea->IsFlag(REGION_FLAG_NO_PVP) && m_pPlayer )
+			{
+				if (pSrc->m_pPlayer)	// player attacking player
+				{
+					// TODO: add a sysmessage
+					goto effect_bounce;
+				}
+				if (pSrc->m_pNPC)
+				{
+					CChar* pOwner = pSrc->NPC_PetGetOwnerRecursive();
+					if (pOwner && pOwner->m_pPlayer)	// pet attacking player
+						goto effect_bounce;
+				}
+			}
 		}
 	}
 
@@ -2909,28 +2927,29 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			return WAR_SWING_EQUIPPING;
 
 		ANIM_TYPE anim = GenerateAnimate(ANIM_ATTACK_WEAPON);
-		int animDelay = 7;		// attack speed is always 7ms and then the char keep waiting the remaining time
-		int iSwingDelay = g_Cfg.Calc_CombatAttackSpeed(this, pWeapon);	// swings are started only on the next tick, so substract -1 to compensate that
+		int iSwingDelay = g_Cfg.Calc_CombatAttackSpeed(this, pWeapon);
+		int iAnimDelay = iSwingDelay;	
 
 		if ( IsTrigUsed(TRIGGER_HITTRY) )
 		{
 			CScriptTriggerArgs Args(iSwingDelay, 0, pWeapon);
 			Args.m_VarsLocal.SetNum("Anim", static_cast<int>(anim));
-			Args.m_VarsLocal.SetNum("AnimDelay", animDelay);
+			Args.m_VarsLocal.SetNum("AnimDelay", iAnimDelay);
 			if ( OnTrigger(CTRIG_HitTry, pCharTarg, &Args) == TRIGRET_RET_TRUE )
 				return WAR_SWING_READY;
 
 			iSwingDelay = static_cast<int>(Args.m_iN1);
 			anim = static_cast<ANIM_TYPE>(Args.m_VarsLocal.GetKeyNum("Anim"));
-			animDelay = static_cast<int>(Args.m_VarsLocal.GetKeyNum("AnimDelay"));
+			iAnimDelay = static_cast<int>(Args.m_VarsLocal.GetKeyNum("AnimDelay"));
+		
 			if ( iSwingDelay < 0 )
 				iSwingDelay = 0;
-			if ( animDelay < 0 )
-				animDelay = 0;
+			if ( iAnimDelay < 0 )
+				iAnimDelay = 0;
 		}
 
 		m_atFight.m_Swing_State = WAR_SWING_SWINGING;
-		m_atFight.m_Swing_Delay = static_cast<BYTE>(maximum(0, iSwingDelay - animDelay));
+		m_atFight.m_Swing_Delay = g_World.GetCurrentTime().GetTimeRaw() + iSwingDelay;
 
 		if ( IsSetCombatFlags(COMBAT_PREHIT) )
 		{
@@ -2938,12 +2957,13 @@ WAR_SWING_TYPE CChar::Fight_Hit( CChar * pCharTarg )
 			SetTimeout(0);
 		}
 		else
-			SetTimeout(animDelay);
+			SetTimeout(iSwingDelay);
 
 		Reveal();
 		if ( !IsSetCombatFlags(COMBAT_NODIRCHANGE) )
 			UpdateDir(pCharTarg);
-		UpdateAnimate(anim, false, false, static_cast<BYTE>(animDelay / TICK_PER_SEC));
+
+		UpdateAnimate(anim, false, false, static_cast<BYTE>max(0, iAnimDelay / TICK_PER_SEC));
 		return WAR_SWING_SWINGING;
 	}
 

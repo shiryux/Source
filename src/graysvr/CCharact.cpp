@@ -1641,7 +1641,7 @@ int CChar::ItemPickup(CItem * pItem, WORD amount)
 		else if ( (pItem->GetParentObj() != pChar) || (g_Cfg.m_fCanUndressPets == true) ) // our owners can take items from us (with CanUndressPets=true, they can undress us too)
 			bCanTake = pChar->IsOwnedBy(this);
 		else  // higher priv players can take items and undress us
-			bCanTake = IsPriv(PRIV_GM) && GetPrivLevel() > pChar->GetPrivLevel();
+			bCanTake = ( IsPriv(PRIV_GM) && (GetPrivLevel() > pChar->GetPrivLevel()) );
 
 		if (bCanTake == false)
 		{
