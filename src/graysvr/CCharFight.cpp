@@ -1403,10 +1403,12 @@ void CChar::OnHarmedBy( CChar * pCharSrc )
 		// NPC will Change targets.
 	}
 
-	if ( NPC_IsOwnedBy(pCharSrc, false) )
+	if ( pCharSrc->m_pClient && NPC_IsOwnedBy(pCharSrc, false))
 		NPC_PetDesert();
 
-	// I will Auto-Defend myself.
+	if (pCharSrc->GetOwner() && (pCharSrc->GetOwner() == GetOwner()))
+		NPC_PetDesert();
+	
 	Fight_Attack(pCharSrc);
 }
 
@@ -1674,8 +1676,16 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		}
 		if ( (uType & DAMAGE_FIRE) && Can(CAN_C_FIRE_IMMUNE) )
 			goto effect_bounce;
+
 		if ( pSrc->m_pNPC && (pSrc->NPC_PetGetOwner() == this) && (pSrc->m_pNPC->m_Brain != NPCBRAIN_BERSERK) )
 			goto effect_bounce;
+
+		if (pSrc->m_pNPC && m_pNPC)
+		{
+			if (pSrc->GetOwner() == GetOwner())
+				goto effect_bounce;
+		}
+
 		if ( m_pArea )
 		{
 			if ( m_pArea->IsFlag(REGION_FLAG_SAFE) )

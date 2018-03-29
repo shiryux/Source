@@ -222,8 +222,8 @@ PacketHealthBarInfo::PacketHealthBarInfo(const CClient *target, CObjBase *object
 
 		if (version >= 4) // AOS attributes
 		{
-			writeInt16(static_cast<WORD>(object->GetDefNum("RESFIRE", true)));
-			writeInt16(static_cast<WORD>(object->GetDefNum("RESCOLD", true)));
+			writeInt16(static_cast<WORD>(object->GetKeyNum("PENALTY.MAGERY", true)));
+			writeInt16(static_cast<WORD>(object->GetKeyNum("PENALTY.STEALTH", true)));
 			writeInt16(static_cast<WORD>(object->GetDefNum("RESPOISON", true)));
 			writeInt16(static_cast<WORD>(object->GetDefNum("RESENERGY", true)));
 			writeInt16(static_cast<WORD>(object->GetDefNum("LUCK", true)));

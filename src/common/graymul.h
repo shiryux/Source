@@ -155,6 +155,8 @@ enum ITEMID_TYPE	// InsideUO is great for this stuff.
 	ITEMID_WEB1_1				= 0xEE3,
 	ITEMID_WEB1_4				= 0xEE6,
 	ITEMID_GOLD_C1				= 0xEED,	// big pile
+	ITEMID_GOLD_C2				= 0xEEE,
+	ITEMID_GOLD_C3				= 0xEEF,
 	ITEMID_SPELLBOOK			= 0xEFA,
 
 	ITEMID_EMPTY_BOTTLE			= 0xF0E,

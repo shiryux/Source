@@ -347,6 +347,7 @@ bool CChar::NPC_OnHearPetCmdTarg(int iCmd, CChar *pSrc, CObjBase *pObj, const CP
 		{
 			if ( !pCharTarg || (pCharTarg == this) || (pCharTarg == pSrc) )
 				break;
+
 			bSuccess = pCharTarg->OnAttackedBy(pSrc, true);
 			if ( bSuccess )
 				bSuccess = Fight_Attack(pCharTarg, true);
