@@ -1680,30 +1680,12 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 		if ( pSrc->m_pNPC && (pSrc->NPC_PetGetOwner() == this) && (pSrc->m_pNPC->m_Brain != NPCBRAIN_BERSERK) )
 			goto effect_bounce;
 
-		if (pSrc->m_pNPC && m_pNPC)
-		{
-			if (pSrc->GetOwner() == GetOwner())
-				goto effect_bounce;
-		}
-
 		if ( m_pArea )
 		{
 			if ( m_pArea->IsFlag(REGION_FLAG_SAFE) )
 				goto effect_bounce;
-			if ( m_pArea->IsFlag(REGION_FLAG_NO_PVP) && m_pPlayer )
-			{
-				if (pSrc->m_pPlayer)	// player attacking player
-				{
-					// TODO: add a sysmessage
-					goto effect_bounce;
-				}
-				if (pSrc->m_pNPC)
-				{
-					CChar* pOwner = pSrc->NPC_PetGetOwnerRecursive();
-					if (pOwner && pOwner->m_pPlayer)	// pet attacking player
-						goto effect_bounce;
-				}
-			}
+			if (m_pArea->IsFlag(REGION_FLAG_NO_PVP) && pSrc && ((IsStatFlag(STATF_Pet) && GetOwner() == pSrc) || (m_pPlayer && (pSrc->m_pPlayer || pSrc->IsStatFlag(STATF_Pet)))))
+				goto effect_bounce;
 		}
 	}
 
@@ -1927,6 +1909,10 @@ int CChar::OnTakeDamage( int iDmg, CChar * pSrc, DAMAGE_TYPE uType, int iDmgPhys
 
 	if (iDmg <= 0)
 		return(0);
+
+	// FIXME: Trade Window
+	// Closed client-side when got it
+	// Should close it server-side also.
 
 	// Apply damage
 	SoundChar(CRESND_GETHIT);
