@@ -1038,7 +1038,7 @@ void CChar::OnNoticeCrime( CChar * pCriminal, const CChar * pCharMark )
 	if ( !pCriminal || (pCriminal == this) || (pCriminal == pCharMark) || pCriminal->IsPriv(PRIV_GM) || (pCriminal->GetNPCBrain(false) == NPCBRAIN_GUARD) )
 		return;
 	NOTO_TYPE iNoto = pCharMark->Noto_GetFlag(pCriminal);
-	if ( iNoto == NOTO_CRIMINAL || iNoto == NOTO_EVIL )
+	if ( (iNoto == NOTO_CRIMINAL) || (iNoto == NOTO_EVIL) || (Noto_IsCriminal()) )
 		return;
 
 
@@ -1441,7 +1441,7 @@ bool CChar::OnAttackedBy(CChar *pCharSrc, bool bCommandPet, bool bShouldReveal)
 	Attacker_Add(pCharSrc);
 
 	// Are they a criminal for it ? Is attacking me a crime ?
-	if (Noto_GetFlag(pCharSrc) == NOTO_GOOD) 
+	if ( (Noto_GetFlag(pCharSrc) == NOTO_GOOD) && (!IsStatFlag(STATF_Criminal)) ) 
 	{
 		if ( m_pClient )	// I decide if this is a crime.
 			OnNoticeCrime( pCharSrc, this );
