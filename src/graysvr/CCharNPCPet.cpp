@@ -559,7 +559,9 @@ bool CChar::NPC_PetSetOwner(CChar *pChar, bool bResendTooltip)
 		pSpawn->DelObj(GetUID());
 
 	Memory_AddObjTypes(pChar, MEMORY_IPET);
-	NPC_Act_Follow();
+
+	if ( GetNPCBrain() != NPCBRAIN_BERSERK)
+		NPC_Act_Follow();
 
 	if ( NPC_IsVendor() )
 	{
