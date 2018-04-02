@@ -1600,14 +1600,18 @@ int CChar::ItemPickup(CItem * pItem, WORD amount)
 	{
 		if ( pCorpse->m_uidLink == GetUID() )
 		{
-			if ( g_Cfg.m_iRevealFlags & REVEALF_LOOTINGSELF )
-				Reveal();
+			UINT64 iRevealFlags = STATF_Hidden | STATF_Sleeping;
+			if (g_Cfg.m_iRevealFlags & REVEALF_LOOTINGSELF)
+				iRevealFlags |= STATF_Invisible;
+			Reveal(iRevealFlags);
 		}
 		else
 		{
+			UINT64 iRevealFlags = STATF_Hidden | STATF_Sleeping;
 			CheckCorpseCrime(pCorpse, true, false);
 			if ( g_Cfg.m_iRevealFlags & REVEALF_LOOTINGOTHERS )
-				Reveal();
+				iRevealFlags |= STATF_Invisible;
+			Reveal(iRevealFlags);
 		}
 	}
 
@@ -2128,8 +2132,10 @@ void CChar::SpeakUTF8( LPCTSTR pszText, HUE_TYPE wHue, TALKMODE_TYPE mode, FONT_
 
 	if ( mode != TALKMODE_SPELL )		// spell's reveal is handled in Spell_CastStart
 	{
-		if ( g_Cfg.m_iRevealFlags & REVEALF_SPEAK )
-			Reveal();
+		UINT64 iRevealFlags = STATF_Hidden | STATF_Sleeping;
+		if (g_Cfg.m_iRevealFlags & REVEALF_SPEAK)
+			iRevealFlags |= STATF_Invisible;
+		Reveal(iRevealFlags);
 	}
 	CObjBase::SpeakUTF8(pszText, wHue, mode, font, lang);
 }
@@ -2146,8 +2152,10 @@ void CChar::SpeakUTF8Ex( const NWORD * pszText, HUE_TYPE wHue, TALKMODE_TYPE mod
 
 	if ( mode != TALKMODE_SPELL )		// spell's reveal is handled in Spell_CastStart
 	{
-		if ( g_Cfg.m_iRevealFlags & REVEALF_SPEAK )
-			Reveal();
+		UINT64 iRevealFlags = STATF_Hidden | STATF_Sleeping;
+		if (g_Cfg.m_iRevealFlags & REVEALF_SPEAK)
+			iRevealFlags |= STATF_Invisible;
+		Reveal(iRevealFlags);
 	}
 	CObjBase::SpeakUTF8Ex(pszText, wHue, mode, font, lang);
 }

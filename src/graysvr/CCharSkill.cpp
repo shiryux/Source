@@ -1992,9 +1992,6 @@ int CChar::Skill_DetectHidden(SKTRIG_TYPE stage)
 		return -SKTRIG_QTY;
 	}
 
-	if ( !(g_Cfg.m_iRevealFlags & REVEALF_DETECTINGHIDDEN) )	// skill succeeded, but effect is disabled
-		return 0;
-
 	int iSkill = Skill_GetAdjusted(SKILL_DETECTINGHIDDEN);
 	int iRadius = iSkill / 100;
 
@@ -2006,6 +2003,9 @@ int CChar::Skill_DetectHidden(SKTRIG_TYPE stage)
 		if ( !pChar )
 			break;
 		if ( (pChar == this) || !pChar->IsStatFlag(STATF_Invisible|STATF_Hidden) )
+			continue;
+
+		if (!(g_Cfg.m_iRevealFlags & REVEALF_DETECTINGHIDDEN) && pChar->IsStatFlag(STATF_Invisible))
 			continue;
 
 		// Check chance to reveal the target
