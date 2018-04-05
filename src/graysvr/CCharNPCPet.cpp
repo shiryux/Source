@@ -560,7 +560,7 @@ bool CChar::NPC_PetSetOwner(CChar *pChar, bool bResendTooltip)
 
 	Memory_AddObjTypes(pChar, MEMORY_IPET);
 
-	if ( GetNPCBrain() != NPCBRAIN_BERSERK)
+	if ( m_pNPC->m_Brain != NPCBRAIN_BERSERK)
 		NPC_Act_Follow();
 
 	if ( NPC_IsVendor() )

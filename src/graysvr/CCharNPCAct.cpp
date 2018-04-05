@@ -1285,7 +1285,7 @@ bool CChar::NPC_LookAtChar( CChar *pChar )
 		}
 	}
 
-	if ( NPC_IsOwnedBy( pChar, false ))
+	if ((NPC_IsOwnedBy(pChar, false)) && (m_pNPC->m_Brain != NPCBRAIN_BERSERK))
 	{
 		// follow my owner again. (Default action)
 		m_Act_Targ = pChar->GetUID();
@@ -1529,15 +1529,9 @@ bool CChar::NPC_Act_Follow( bool fFlee, int maxDistance, bool fMoveAway )
 		return( false );
 	}
 
-	if ( IsStatFlag(STATF_Pet) )
-	{
-		if ( (NPC_PetGetOwner() == pChar) && (GetNPCBrain() == NPCBRAIN_BERSERK) )
-		{
-			Skill_Start(SKILL_NONE);
-			return false;
-		}
-	}
-
+	if ((m_pNPC->m_Brain == NPCBRAIN_BERSERK) && (pChar == GetOwner()))
+		Skill_Start(NPCACT_WANDER);
+	
 	EXC_SET("Trigger");
 	if ( IsTrigUsed(TRIGGER_NPCACTFOLLOW) )
 	{
