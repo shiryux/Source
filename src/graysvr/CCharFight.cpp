@@ -732,7 +732,7 @@ void CChar::NotoSave_CheckTimeout()
 				NotoSave_Resend(count);
 				break;
 			}
-			count++;
+			++count;
 		}
 	}
 }
@@ -783,16 +783,16 @@ bool CChar::NotoSave_Delete( CChar * pChar )
 	if ( NotoSave() )
 	{
 		int count = 0;
-		for ( std::vector<NotoSaves>::iterator it = m_notoSaves.begin(); it != m_notoSaves.end(); ++it )
+		for (std::vector<NotoSaves>::iterator it = m_notoSaves.begin(), end = m_notoSaves.end(); it != end;)
 		{
-			NotoSaves & refNotoSave = m_notoSaves.at(count);
+			NotoSaves & refNotoSave = *it;
 			CGrayUID uid = refNotoSave.charUID;
 			if ( uid.CharFind() && uid == static_cast<DWORD>(pChar->GetUID()) )
 			{
-				m_notoSaves.erase(it);
+				it = m_notoSaves.erase(it);
 				return true;
 			}
-			count++;
+			++it;
 		}
 	}
 	return false;
@@ -825,12 +825,13 @@ bool CChar::Memory_UpdateFlags( CItemMemory * pMemory )
 		iCheckTime = 5*60*TICK_PER_SEC;
 	else
 		iCheckTime = 20*60*TICK_PER_SEC;
-	pMemory->SetTimeout( iCheckTime );	// update it's decay time.	
+
+	pMemory->SetTimeout(iCheckTime);	// update it's decay time.	
 	CChar * pCharLink = pMemory->m_uidLink.CharFind();
 	if (pCharLink)
 	{
 		pCharLink->NotoSave_Update();	// Clear my notoriety from the target.
-		NotoSave_Update();		// iAggressor is stored in the other char, so the call should be reverted.
+		NotoSave_Update();				// iAggressor is stored in the other char, so the call should be reverted.
 	}
 	return true;
 }
@@ -998,12 +999,11 @@ CItemMemory * CChar::Memory_AddObjTypes( CGrayUID uid, WORD MemTypes )
 	ADDTOCALLSTACK("CChar::Memory_AddObjTypes");
 	CItemMemory * pMemory = Memory_FindObj( uid );
 	if ( pMemory == NULL )
-	{
 		return Memory_CreateObj( uid, MemTypes );
-	}
+
 	Memory_AddTypes( pMemory, MemTypes );
 	NotoSave_Delete( uid.CharFind() );
-	return( pMemory );
+	return pMemory;
 }
 
 // NOTE: Do not return true unless u update the timer !
@@ -1037,8 +1037,9 @@ void CChar::OnNoticeCrime( CChar * pCriminal, const CChar * pCharMark )
 	ADDTOCALLSTACK("CChar::OnNoticeCrime");
 	if ( !pCriminal || (pCriminal == this) || (pCriminal == pCharMark) || pCriminal->IsPriv(PRIV_GM) || (pCriminal->GetNPCBrain(false) == NPCBRAIN_GUARD) )
 		return;
+
 	NOTO_TYPE iNoto = pCharMark->Noto_GetFlag(pCriminal);
-	if ( (iNoto == NOTO_CRIMINAL) || (iNoto == NOTO_EVIL) || (Noto_IsCriminal()) )
+	if ( (iNoto == NOTO_CRIMINAL) || (iNoto == NOTO_EVIL) )
 		return;
 
 
@@ -1055,11 +1056,7 @@ void CChar::OnNoticeCrime( CChar * pCriminal, const CChar * pCharMark )
 			bCriminal = Args.m_iN1 ? true : false;
 		}
 		if (bCriminal)
-		{
 			Memory_AddObjTypes(pCriminal, MEMORY_SAWCRIME);
-			pCriminal->Noto_Criminal();
-			//pCriminal->NotoSave_Update();
-		}
 		return;
 	}
 
@@ -1309,7 +1306,7 @@ void CChar::CallGuards()
 		// Mark person as criminal if I saw him criming
 		// Only players call guards this way. NPC's flag criminal instantly
 		if ( m_pPlayer && Memory_FindObjTypes(pCriminal, MEMORY_SAWCRIME) )
-			pCriminal->Noto_Criminal();
+			pCriminal->Noto_Criminal(this);
 
 		if ( pCriminal->IsStatFlag(STATF_Criminal) || (g_Cfg.m_fGuardsOnMurderers && pCriminal->Noto_IsEvil()) )
 			CallGuards(pCriminal);
@@ -1441,7 +1438,7 @@ bool CChar::OnAttackedBy(CChar *pCharSrc, bool bCommandPet, bool bShouldReveal)
 	Attacker_Add(pCharSrc);
 
 	// Are they a criminal for it ? Is attacking me a crime ?
-	if ( (Noto_GetFlag(pCharSrc) == NOTO_GOOD) && (!IsStatFlag(STATF_Criminal)) ) 
+	if ( Noto_GetFlag(pCharSrc) == NOTO_GOOD ) 
 	{
 		if ( m_pClient )	// I decide if this is a crime.
 			OnNoticeCrime( pCharSrc, this );

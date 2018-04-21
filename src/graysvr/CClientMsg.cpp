@@ -2011,13 +2011,13 @@ void CClient::addSpellbookOpen( CItem * pBook )
 	OpenPacketTransaction transaction(this, PacketSend::PRI_NORMAL);
 	addOpenGump(pBook, GUMP_NONE);
 
-	if ( PacketSpellbookContent::CanSendTo(m_NetState) )
+	/* if ( PacketSpellbookContent::CanSendTo(m_NetState) )
 	{
 		CItemBase *pBookDef = pBook->Item_GetDef();
 		if ( pBookDef )
 			new PacketSpellbookContent(this, pBook, static_cast<WORD>(pBookDef->m_ttSpellbook.m_Offset + 1));
 	}
-	else
+	else */
 		new PacketItemContents(this, pBook);
 }
 
